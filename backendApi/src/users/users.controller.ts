@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, Param, Patch, Post, Put, Query } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Patch, Post, Put, Query, UseGuards } from '@nestjs/common';
 import {
     ApiBearerAuth,
     ApiBody,
@@ -10,6 +10,7 @@ import { UsersService } from './users.service';
 import { User } from './entities/user.entity';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
+import { JwtAuthGuard } from 'src/guards/auth.guard';
 
 @ApiBearerAuth()
 @ApiTags('users')
@@ -17,6 +18,7 @@ import { UpdateUserDto } from './dto/update-user.dto';
 export class UsersController {
     constructor(private readonly usersService: UsersService) { }
 
+    @UseGuards(JwtAuthGuard)
     @Post()
     @ApiOperation({ summary: 'Создание пользователя' })
     @ApiResponse({ status: 201, description: 'Пользователь успешно создан!' })
@@ -27,6 +29,7 @@ export class UsersController {
         return this.usersService.create(user);
     }
 
+    @UseGuards(JwtAuthGuard)
     @Get()
     @ApiOperation({ summary: 'Получение всех пользователей' })
     @ApiResponse({
@@ -38,6 +41,7 @@ export class UsersController {
         return this.usersService.findAll();
     }
 
+    @UseGuards(JwtAuthGuard)
     @Get(':id')
     @ApiOperation({ summary: 'Получение отдельного пользователя' })
     @ApiResponse({
@@ -54,6 +58,7 @@ export class UsersController {
         return this.usersService.findById(+id);
     }
 
+    @UseGuards(JwtAuthGuard)
     @Patch()
     @ApiOperation({ summary: 'Обновление данных пользователя' })
     @ApiResponse({ status: 200, description: 'Пользователь успешно обновлен!' })
@@ -64,6 +69,7 @@ export class UsersController {
         return this.usersService.update(user);
     }
 
+    @UseGuards(JwtAuthGuard)
     @Delete(':id')
     @ApiOperation({ summary: 'Удаление отдельного пользователя' })
     @ApiResponse({

@@ -1,9 +1,10 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Put } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Put, UseGuards } from '@nestjs/common';
 import { FileTypeService } from './file_type.service';
 import { CreateFileTypeDto } from './dto/create-file_type.dto';
 import { UpdateFileTypeDto } from './dto/update-file_type.dto';
 import { ApiBearerAuth, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { FileType } from './entities/file_type.entity';
+import { JwtAuthGuard } from 'src/guards/auth.guard';
 
 @ApiBearerAuth()
 @ApiTags('file-type')
@@ -11,6 +12,7 @@ import { FileType } from './entities/file_type.entity';
 export class FileTypeController {
   constructor(private readonly fileTypeService: FileTypeService) { }
 
+  @UseGuards(JwtAuthGuard)
   @Post()
   @ApiOperation({ summary: 'Создание нового типа файла' })
   @ApiResponse({ status: 201, description: 'Тип файла успешно создан!' })
@@ -35,6 +37,7 @@ export class FileTypeController {
     return this.fileTypeService.findOne(+id);
   }
 
+  @UseGuards(JwtAuthGuard)
   @Patch()
   @ApiOperation({ summary: 'Обновление отдельного типа файла' })
   @ApiResponse({ status: 200, description: 'Тип файла успешно обновлен!' })
@@ -43,6 +46,7 @@ export class FileTypeController {
     return this.fileTypeService.update(updateFileTypeDto);
   }
 
+  @UseGuards(JwtAuthGuard)
   @Delete(':id')
   @ApiOperation({ summary: 'Удаление отдельного типа файла' })
   @ApiResponse({ status: 201, description: 'Тип файла успешно удален!' })

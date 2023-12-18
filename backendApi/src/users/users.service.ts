@@ -260,23 +260,4 @@ export class UsersService {
             return { statusCode: 200, message: 'Данные пользователя успешно удалены!' };
         }
     }
-
-    // async logIn(login: string, password: string) {
-    //     const foundUser = await this.userRepository.createQueryBuilder('user')
-    //         .leftJoinAndSelect('user.role', 'role')
-    //         .leftJoinAndSelect('user.organization', 'organization')
-    //         .where('user.login = :login', { login: login })
-    //         .getOne();
-
-    //     if (foundUser == null) {
-    //         return Promise.reject(
-    //             {
-    //                 statusCode: 404,
-    //                 message: 'Пользователь не найден!'
-    //             }
-    //         );
-    //     }
-
-    //     return await bcrypt.compare(password, foundUser.password);
-    // }
 }

@@ -1,9 +1,10 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Put } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Put, UseGuards } from '@nestjs/common';
 import { OrderStatusService } from './order_status.service';
 import { CreateOrderStatusDto } from './dto/create-order_status.dto';
 import { UpdateOrderStatusDto } from './dto/update-order_status.dto';
 import { ApiBearerAuth, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { OrderStatus } from './entities/order_status.entity';
+import { JwtAuthGuard } from 'src/guards/auth.guard';
 
 @ApiBearerAuth()
 @ApiTags('order-status')
@@ -11,6 +12,7 @@ import { OrderStatus } from './entities/order_status.entity';
 export class OrderStatusController {
   constructor(private readonly orderStatusService: OrderStatusService) { }
 
+  @UseGuards(JwtAuthGuard)
   @Post()
   @ApiOperation({ summary: 'Создание статуса заказа' })
   @ApiResponse({ status: 201, description: 'Статус заказа успешно создан!' })
@@ -35,6 +37,7 @@ export class OrderStatusController {
     return this.orderStatusService.findOne(+id);
   }
 
+  @UseGuards(JwtAuthGuard)
   @Patch()
   @ApiOperation({ summary: 'Обновление отдельного статуса заказа' })
   @ApiResponse({ status: 200, description: 'Статус успешно обновлен!' })
@@ -44,6 +47,7 @@ export class OrderStatusController {
     return this.orderStatusService.update(updateOrderStatusDto);
   }
 
+  @UseGuards(JwtAuthGuard)
   @Delete(':id')
   @ApiOperation({ summary: 'Удаление отдельного статуса заказа' })
   @ApiResponse({ status: 201, description: 'Статус успешно удален!' })

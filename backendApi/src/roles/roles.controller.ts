@@ -37,6 +37,7 @@ export class RolesController {
     return this.rolesService.findOne(+id);
   }
 
+  @UseGuards(JwtAuthGuard)
   @Patch()
   @ApiOperation({ summary: 'Изменение отдельной роли' })
   @ApiResponse({ status: 200, description: 'Роль успешно обновлена!' })
@@ -45,6 +46,7 @@ export class RolesController {
     return this.rolesService.update(updateRoleDto);
   }
 
+  @UseGuards(JwtAuthGuard)
   @Delete(':id')
   @ApiOperation({ summary: 'Удаление отдельной роли' })
   @ApiResponse({ status: 201, description: 'Роль успешно удалена!' })
