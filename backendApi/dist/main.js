@@ -2,14 +2,14 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 const core_1 = require("@nestjs/core");
 const swagger_1 = require("@nestjs/swagger");
-const app_module_1 = require("./app.module");
+const app_module_1 = require("./modules/app/app.module");
 async function bootstrap() {
     const app = await core_1.NestFactory.create(app_module_1.AppModule);
     const config = new swagger_1.DocumentBuilder()
-        .setTitle('Info City API')
-        .setDescription('The Info City API!')
+        .setTitle('GRAIVTINO ASU API')
+        .setDescription('The GRAIVTINO ASU API!')
         .setVersion('1.0')
-        .addTag('infocity')
+        .addTag('GRAIVTINO ASU')
         .addBearerAuth({
         type: 'http',
         scheme: 'bearer',
