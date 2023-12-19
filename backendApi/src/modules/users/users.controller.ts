@@ -18,7 +18,6 @@ import { JwtAuthGuard } from 'src/modules/guards/auth.guard';
 export class UsersController {
     constructor(private readonly usersService: UsersService) { }
 
-    @UseGuards(JwtAuthGuard)
     @Post()
     @ApiOperation({ summary: 'Создание пользователя' })
     @ApiResponse({ status: 201, description: 'Пользователь успешно создан!' })
