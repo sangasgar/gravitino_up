@@ -23,6 +23,6 @@ export class Auth extends Model<Auth> {
     ip_address: string;
 
     sign(): string {
-        return sign({ ...this }, process.env.refresh_token);
+        return sign({ ...this }, process.env.REFRESH_SECRET);
     }
 }

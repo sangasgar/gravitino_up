@@ -75,14 +75,14 @@ export class Order extends Model<Order> {
     @Column({ type: DataType.INTEGER, allowNull: false, })
     executor_id: number;
 
-    @BelongsTo(type => User)
+    @BelongsTo(type => User, "executor_id")
     executor: User;
 
     @ForeignKey(type => User)
     @Column({ type: DataType.INTEGER, allowNull: false, })
     creator_id: number;
 
-    @BelongsTo(type => User)
+    @BelongsTo(type => User, "creator_id")
     creator: User;
 
     @ForeignKey(type => OrderStatus)

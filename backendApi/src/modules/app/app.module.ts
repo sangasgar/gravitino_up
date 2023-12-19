@@ -33,6 +33,7 @@ import { Checkpoint } from '../checkpoint/entities/checkpoint.entity';
 import { AuthModule } from '../auth/auth.module';
 import { CategoryModule } from '../category/category.module';
 import { CheckpointModule } from '../checkpoint/checkpoint.module';
+import { Order } from '../order/entities/order.entity';
 
 @Module({
   imports: [
@@ -53,20 +54,21 @@ import { CheckpointModule } from '../checkpoint/checkpoint.module';
         synchronize: true,
         models: [
           User,
-        Auth,
-        Person,
-        Role,
-        Group,
-        Organization,
-        OrganizationType,
-        Task,
-        Category,
-        OrderStatus,
-        OrderPriority,
-        Checkpoint,
-        Facility,
-        FileType,
-        Report,
+          Auth,
+          Person,
+          Role,
+          Group,
+          Organization,
+          OrganizationType,
+          Task,
+          Category,
+          OrderStatus,
+          OrderPriority,
+          Checkpoint,
+          Facility,
+          FileType,
+          Report,
+          Order,
         ],
       }),
       inject: [ConfigService],
@@ -85,6 +87,7 @@ import { CheckpointModule } from '../checkpoint/checkpoint.module';
 
     TaskModule,
     CategoryModule,
+    OrderModule,
 
     CheckpointModule,
     FacilityModule,

@@ -1,7 +1,9 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { NonAttribute } from 'sequelize';
 import { BelongsTo, Column, DataType, ForeignKey, HasMany, HasOne, Model, PrimaryKey, Table } from 'sequelize-typescript';
+import { Auth } from 'src/modules/auth/entities/auth.entity';
 import { Group } from 'src/modules/group/entities/group.entity';
+import { Order } from 'src/modules/order/entities/order.entity';
 import { Organization } from 'src/modules/organization/entities/organization.entity';
 import { Person } from 'src/modules/person/entities/person.entity';
 import { OrderPriority } from 'src/modules/priority/entities/priority.entity';
@@ -77,9 +79,15 @@ export class User extends Model<User> {
     @Column({ type: DataType.STRING, allowNull: false, })
     password: string;
 
-    @HasMany(type => User, 'user_id')
-    users: NonAttribute<User[]>;
+    @HasMany(type => Auth, 'user_id')
+    users: NonAttribute<Auth[]>;
 
     @HasMany(type => Report, 'report_user_id')
     reports: Report[];
+
+    @HasMany(type => Order, 'creator_id')
+    order_creators: NonAttribute<Order[]>;
+
+    @HasMany(type => Order, 'executor_id')
+    order_executors: NonAttribute<Order[]>;
 }

@@ -2,11 +2,12 @@ import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards } from '@n
 import { OrderService } from './order.service';
 import { CreateOrderDto } from './dto/create-order.dto';
 import { UpdateOrderDto } from './dto/update-order.dto';
-import { ApiBearerAuth } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { JwtAuthGuard } from 'src/modules/guards/auth.guard';
 
-@ApiBearerAuth()
 @Controller('order')
+@ApiTags('order')
+@ApiBearerAuth()
 export class OrderController {
   constructor(private readonly orderService: OrderService) { }
 
@@ -24,19 +25,19 @@ export class OrderController {
 
   @UseGuards(JwtAuthGuard)
   @Get(':id')
-  findOne(@Param('id') id: string) {
+  findOne(@Param('id') id: number) {
     return this.orderService.findOne(+id);
   }
 
   @UseGuards(JwtAuthGuard)
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateOrderDto: UpdateOrderDto) {
-    return this.orderService.update(+id, updateOrderDto);
+  @Patch()
+  update(@Body() updateOrderDto: UpdateOrderDto) {
+    return this.orderService.update(updateOrderDto);
   }
 
   @UseGuards(JwtAuthGuard)
   @Delete(':id')
-  remove(@Param('id') id: string) {
+  remove(@Param('id') id: number) {
     return this.orderService.remove(+id);
   }
 }
