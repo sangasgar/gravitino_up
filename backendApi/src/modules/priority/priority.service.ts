@@ -29,8 +29,8 @@ export class PriorityService {
     return result;
   }
 
-  async update(id: number, updatePriorityDto: UpdatePriorityDto) {
-    const orderPriority = await this.orderStatusRepository.findOne({ where: { priority_id: id } })
+  async update(updatePriorityDto: UpdatePriorityDto) {
+    const orderPriority = await this.orderStatusRepository.findOne({ where: { priority_id: updatePriorityDto.priority_id } })
     var newOrderPriority = await orderPriority.update(updatePriorityDto);
 
     return newOrderPriority;

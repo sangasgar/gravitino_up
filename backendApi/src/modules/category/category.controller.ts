@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Req } from '@nestjs/common';
 import { CategoryService } from './category.service';
 import { CreateCategoryDto } from './dto/create-category.dto';
 import { UpdateCategoryDto } from './dto/update-category.dto';
@@ -13,8 +13,8 @@ export class CategoryController {
 
     @UseGuards(JwtAuthGuard)
     @Post()
-    create(@Body() createCategoryDto: CreateCategoryDto) {
-        return this.categoryService.create(createCategoryDto);
+    create(@Body() createCategoryDto: CreateCategoryDto, @Req() request) {
+        return this.categoryService.create(createCategoryDto, request.user.user_id);
     }
 
     @UseGuards(JwtAuthGuard)
@@ -31,13 +31,13 @@ export class CategoryController {
 
     @UseGuards(JwtAuthGuard)
     @Patch(':id')
-    update(@Body() updateCategoryDto: UpdateCategoryDto) {
-        return this.categoryService.update(updateCategoryDto);
+    update(@Body() updateCategoryDto: UpdateCategoryDto, @Req() request) {
+        return this.categoryService.update(updateCategoryDto, request.user.user_id);
     }
 
     @UseGuards(JwtAuthGuard)
     @Delete(':id')
-    remove(@Param('id') id: number) {
-        return this.categoryService.remove(+id);
+    remove(@Param('id') id: number, @Req() request) {
+        return this.categoryService.remove(+id, request.user.user_id);
     }
 }

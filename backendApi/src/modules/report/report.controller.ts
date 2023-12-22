@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UploadedFile, Query, UseInterceptors, Res, StreamableFile, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, UploadedFile, Query, UseInterceptors, Res, StreamableFile, UseGuards, Req } from '@nestjs/common';
 import { ReportService } from './report.service';
 import { Express, Response } from 'express';
 import { ApiBearerAuth, ApiConsumes, ApiTags } from '@nestjs/swagger';
@@ -16,7 +16,7 @@ export class ReportController {
 
   @UseGuards(JwtAuthGuard)
   @Post()
-  create(@Body() createReportDto: CreateReportDto) {
+  create(@Body() createReportDto: CreateReportDto, @Req() request) {
     return this.reportService.create(createReportDto);
   }
 
@@ -34,13 +34,13 @@ export class ReportController {
 
   @UseGuards(JwtAuthGuard)
   @Patch()
-  update(@Body() updateReportDto: UpdateReportDto) {
+  update(@Body() updateReportDto: UpdateReportDto, @Req() request) {
     return this.reportService.update(updateReportDto);
   }
 
   @UseGuards(JwtAuthGuard)
   @Delete(':id')
-  remove(@Param('id') id: string) {
+  remove(@Param('id') id: string, @Req() request) {
     return this.reportService.remove(+id);
   }
 }

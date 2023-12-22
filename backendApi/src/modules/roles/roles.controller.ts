@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Put, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Put, UseGuards, Req } from '@nestjs/common';
 import { RolesService } from './roles.service';
 import { CreateRoleDto } from './dto/create-role.dto';
 import { UpdateRoleDto } from './dto/update-role.dto';
@@ -16,7 +16,7 @@ export class RolesController {
   @Post()
   @ApiOperation({ summary: 'Создание роли' })
   @ApiResponse({ status: 201, description: 'Роль успешно создана!' })
-  create(@Body() createRoleDto: CreateRoleDto) {
+  create(@Body() createRoleDto: CreateRoleDto, @Req() request) {
     return this.rolesService.create(createRoleDto);
   }
 
@@ -42,7 +42,7 @@ export class RolesController {
   @ApiOperation({ summary: 'Изменение отдельной роли' })
   @ApiResponse({ status: 200, description: 'Роль успешно обновлена!' })
   @ApiResponse({ status: 404, description: 'Роль не существует!' })
-  update(@Body() updateRoleDto: UpdateRoleDto) {
+  update(@Body() updateRoleDto: UpdateRoleDto, @Req() request) {
     return this.rolesService.update(updateRoleDto);
   }
 
@@ -51,7 +51,7 @@ export class RolesController {
   @ApiOperation({ summary: 'Удаление отдельной роли' })
   @ApiResponse({ status: 201, description: 'Роль успешно удалена!' })
   @ApiResponse({ status: 404, description: 'Роль не существует!' })
-  remove(@Param('id') id: number) {
+  remove(@Param('id') id: number, @Req() request) {
     return this.rolesService.remove(+id);
   }
 }

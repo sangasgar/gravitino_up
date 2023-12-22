@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Req } from '@nestjs/common';
 import { GroupService } from './group.service';
 import { CreateGroupDto } from './dto/create-group.dto';
 import { UpdateGroupDto } from './dto/update-group.dto';
@@ -13,7 +13,7 @@ export class GroupController {
 
   @UseGuards(JwtAuthGuard)
   @Post()
-  create(@Body() createGroupDto: CreateGroupDto) {
+  create(@Body() createGroupDto: CreateGroupDto, @Req() request) {
     return this.groupService.create(createGroupDto);
   }
 
@@ -31,13 +31,13 @@ export class GroupController {
 
   @UseGuards(JwtAuthGuard)
   @Patch(':id')
-  update(@Body() updateGroupDto: UpdateGroupDto) {
+  update(@Body() updateGroupDto: UpdateGroupDto, @Req() request) {
     return this.groupService.update(updateGroupDto);
   }
 
   @UseGuards(JwtAuthGuard)
   @Delete(':id')
-  remove(@Param('id') id: number) {
+  remove(@Param('id') id: number, @Req() request) {
     return this.groupService.remove(+id);
   }
 }

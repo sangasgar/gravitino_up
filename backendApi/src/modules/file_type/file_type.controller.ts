@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Put, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Put, UseGuards, Req } from '@nestjs/common';
 import { FileTypeService } from './file_type.service';
 import { CreateFileTypeDto } from './dto/create-file_type.dto';
 import { UpdateFileTypeDto } from './dto/update-file_type.dto';
@@ -16,7 +16,7 @@ export class FileTypeController {
   @Post()
   @ApiOperation({ summary: 'Создание нового типа файла' })
   @ApiResponse({ status: 201, description: 'Тип файла успешно создан!' })
-  create(@Body() createFileTypeDto: CreateFileTypeDto) {
+  create(@Body() createFileTypeDto: CreateFileTypeDto, @Req() request) {
     return this.fileTypeService.create(createFileTypeDto);
   }
 
@@ -42,7 +42,7 @@ export class FileTypeController {
   @ApiOperation({ summary: 'Обновление отдельного типа файла' })
   @ApiResponse({ status: 200, description: 'Тип файла успешно обновлен!' })
   @ApiResponse({ status: 404, description: 'Тип файла не существует!' })
-  update(@Body() updateFileTypeDto: UpdateFileTypeDto) {
+  update(@Body() updateFileTypeDto: UpdateFileTypeDto, @Req() request) {
     return this.fileTypeService.update(updateFileTypeDto);
   }
 
@@ -51,7 +51,7 @@ export class FileTypeController {
   @ApiOperation({ summary: 'Удаление отдельного типа файла' })
   @ApiResponse({ status: 201, description: 'Тип файла успешно удален!' })
   @ApiResponse({ status: 404, description: 'Тип файла не существует!' })
-  remove(@Param('id') id: number) {
+  remove(@Param('id') id: number, @Req() request) {
     return this.fileTypeService.remove(+id);
   }
 }

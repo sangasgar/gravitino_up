@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Req } from '@nestjs/common';
 import { OrganizationTypeService } from './organization_type.service';
 import { CreateOrganizationTypeDto } from './dto/create-organization_type.dto';
 import { UpdateOrganizationTypeDto } from './dto/update-organization_type.dto';
@@ -13,7 +13,7 @@ export class OrganizationTypeController {
 
   @UseGuards(JwtAuthGuard)
   @Post()
-  create(@Body() createOrganizationTypeDto: CreateOrganizationTypeDto) {
+  create(@Body() createOrganizationTypeDto: CreateOrganizationTypeDto, @Req() request) {
     return this.organizationTypeService.create(createOrganizationTypeDto);
   }
 
@@ -29,13 +29,13 @@ export class OrganizationTypeController {
 
   @UseGuards(JwtAuthGuard)
   @Patch(':id')
-  update(@Body() updateOrganizationTypeDto: UpdateOrganizationTypeDto) {
+  update(@Body() updateOrganizationTypeDto: UpdateOrganizationTypeDto, @Req() request) {
     return this.organizationTypeService.update(updateOrganizationTypeDto);
   }
 
   @UseGuards(JwtAuthGuard)
   @Delete(':id')
-  remove(@Param('id') id: number) {
+  remove(@Param('id') id: number, @Req() request) {
     return this.organizationTypeService.remove(+id);
   }
 }

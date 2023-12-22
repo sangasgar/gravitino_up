@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Put, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Put, UseGuards, Req } from '@nestjs/common';
 import { OrderStatusService } from './order_status.service';
 import { CreateOrderStatusDto } from './dto/create-order_status.dto';
 import { UpdateOrderStatusDto } from './dto/update-order_status.dto';
@@ -16,7 +16,7 @@ export class OrderStatusController {
   @Post()
   @ApiOperation({ summary: 'Создание статуса заказа' })
   @ApiResponse({ status: 201, description: 'Статус заказа успешно создан!' })
-  create(@Body() createOrderStatusDto: CreateOrderStatusDto) {
+  create(@Body() createOrderStatusDto: CreateOrderStatusDto, @Req() request) {
     return this.orderStatusService.create(createOrderStatusDto);
   }
 
@@ -43,7 +43,7 @@ export class OrderStatusController {
   @ApiResponse({ status: 200, description: 'Статус успешно обновлен!' })
   @ApiResponse({ status: 404, description: 'Статус не существует!' })
   @ApiResponse({ status: 403, description: 'Forbidden!' })
-  update(@Body() updateOrderStatusDto: UpdateOrderStatusDto) {
+  update(@Body() updateOrderStatusDto: UpdateOrderStatusDto, @Req() request) {
     return this.orderStatusService.update(updateOrderStatusDto);
   }
 
@@ -52,7 +52,7 @@ export class OrderStatusController {
   @ApiOperation({ summary: 'Удаление отдельного статуса заказа' })
   @ApiResponse({ status: 201, description: 'Статус успешно удален!' })
   @ApiResponse({ status: 404, description: 'Статус не существует!' })
-  remove(@Param('id') id: number) {
+  remove(@Param('id') id: number, @Req() request) {
     return this.orderStatusService.remove(+id);
   }
 }

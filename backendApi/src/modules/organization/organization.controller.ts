@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Put, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Put, UseGuards, Req } from '@nestjs/common';
 import { OrganizationService } from './organization.service';
 import { CreateOrganizationDto } from './dto/create-organization.dto';
 import { UpdateOrganizationDto } from './dto/update-organization.dto';
@@ -16,7 +16,7 @@ export class OrganizationController {
   @Post()
   @ApiOperation({ summary: 'Создание новой организации' })
   @ApiResponse({ status: 201, description: 'Организация успешно создана!' })
-  create(@Body() createOrganizationDto: CreateOrganizationDto) {
+  create(@Body() createOrganizationDto: CreateOrganizationDto, @Req() request) {
     return this.organizationService.create(createOrganizationDto);
   }
 
@@ -45,7 +45,7 @@ export class OrganizationController {
   @ApiResponse({ status: 200, description: 'Организация успешно обновлена!' })
   @ApiResponse({ status: 404, description: 'Организация не существует!' })
   @ApiResponse({ status: 403, description: 'Forbidden!' })
-  update(@Body() updateOrganizationDto: UpdateOrganizationDto) {
+  update(@Body() updateOrganizationDto: UpdateOrganizationDto, @Req() request) {
     return this.organizationService.update(updateOrganizationDto);
   }
 
@@ -54,7 +54,7 @@ export class OrganizationController {
   @ApiOperation({ summary: 'Удаление отдельной организации' })
   @ApiResponse({ status: 201, description: 'Организация успешно удалена!' })
   @ApiResponse({ status: 404, description: 'Организация не существует!' })
-  remove(@Param('id') id: number) {
+  remove(@Param('id') id: number, @Req() request) {
     return this.organizationService.remove(+id);
   }
 }

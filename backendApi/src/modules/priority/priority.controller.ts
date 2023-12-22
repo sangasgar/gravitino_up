@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Req } from '@nestjs/common';
 import { PriorityService } from './priority.service';
 import { CreatePriorityDto } from './dto/create-priority.dto';
 import { UpdatePriorityDto } from './dto/update-priority.dto';
@@ -13,7 +13,7 @@ export class PriorityController {
 
   @UseGuards(JwtAuthGuard)
   @Post()
-  create(@Body() createPriorityDto: CreatePriorityDto) {
+  create(@Body() createPriorityDto: CreatePriorityDto, @Req() request) {
     return this.priorityService.create(createPriorityDto);
   }
 
@@ -28,14 +28,14 @@ export class PriorityController {
   }
 
   @UseGuards(JwtAuthGuard)
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updatePriorityDto: UpdatePriorityDto) {
-    return this.priorityService.update(+id, updatePriorityDto);
+  @Patch()
+  update(@Body() updatePriorityDto: UpdatePriorityDto, @Req() request) {
+    return this.priorityService.update(updatePriorityDto);
   }
 
   @UseGuards(JwtAuthGuard)
   @Delete(':id')
-  remove(@Param('id') id: string) {
+  remove(@Param('id') id: string, @Req() request) {
     return this.priorityService.remove(+id);
   }
 }

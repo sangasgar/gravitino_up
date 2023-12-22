@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Req } from '@nestjs/common';
 import { FacilityService } from './facility.service';
 import { CreateFacilityDto } from './dto/create-facility.dto';
 import { UpdateFacilityDto } from './dto/update-facility.dto';
@@ -13,7 +13,7 @@ export class FacilityController {
 
   @UseGuards(JwtAuthGuard)
   @Post()
-  create(@Body() createFacilityDto: CreateFacilityDto) {
+  create(@Body() createFacilityDto: CreateFacilityDto, @Req() request) {
     return this.facilityService.create(createFacilityDto);
   }
 
@@ -31,13 +31,13 @@ export class FacilityController {
 
   @UseGuards(JwtAuthGuard)
   @Patch(':id')
-  update(@Body() updateFacilityDto: UpdateFacilityDto) {
+  update(@Body() updateFacilityDto: UpdateFacilityDto, @Req() request) {
     return this.facilityService.update(updateFacilityDto);
   }
 
   @UseGuards(JwtAuthGuard)
   @Delete(':id')
-  remove(@Param('id') id: number) {
+  remove(@Param('id') id: number, @Req() request) {
     return this.facilityService.remove(+id);
   }
 }

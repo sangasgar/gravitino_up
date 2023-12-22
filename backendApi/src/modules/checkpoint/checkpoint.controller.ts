@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Req } from '@nestjs/common';
 import { CheckpointService } from './checkpoint.service';
 import { CreateCheckpointDto } from './dto/create-checkpoint.dto';
 import { UpdateCheckpointDto } from './dto/update-checkpoint.dto';
@@ -13,7 +13,7 @@ export class CheckpointController {
 
   @UseGuards(JwtAuthGuard)
   @Post()
-  create(@Body() createCheckpointDto: CreateCheckpointDto) {
+  create(@Body() createCheckpointDto: CreateCheckpointDto, @Req() request) {
     return this.checkpointService.create(createCheckpointDto);
   }
 
@@ -31,13 +31,13 @@ export class CheckpointController {
 
   @UseGuards(JwtAuthGuard)
   @Patch(':id')
-  update(@Body() updateCheckpointDto: UpdateCheckpointDto) {
+  update(@Body() updateCheckpointDto: UpdateCheckpointDto, @Req() request) {
     return this.checkpointService.update(updateCheckpointDto);
   }
 
   @UseGuards(JwtAuthGuard)
   @Delete(':id')
-  remove(@Param('id') id: number) {
+  remove(@Param('id') id: number, @Req() request) {
     return this.checkpointService.remove(+id);
   }
 }

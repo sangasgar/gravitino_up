@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, Param, Patch, Post, Put, Query, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Patch, Post, Put, Query, Req, UseGuards } from '@nestjs/common';
 import {
     ApiBearerAuth,
     ApiBody,
@@ -24,7 +24,7 @@ export class UsersController {
     @ApiResponse({ status: 404, description: 'Запись отсутствует в базе данных!' })
     @ApiResponse({ status: 409, description: 'Пользователь с таким логином уже существует!' })
     @ApiResponse({ status: 403, description: 'Forbidden!' })
-    create(@Body() user: CreateUserDto) {
+    create(@Body() user: CreateUserDto, @Req() request) {
         return this.usersService.create(user);
     }
 
@@ -64,7 +64,7 @@ export class UsersController {
     @ApiResponse({ status: 404, description: 'Запись отсутствует в базе данных!' })
     @ApiResponse({ status: 409, description: 'Пользователь с таким логином уже существует!' })
     @ApiResponse({ status: 403, description: 'Forbidden!' })
-    update(@Body() user: UpdateUserDto) {
+    update(@Body() user: UpdateUserDto, @Req() request) {
         return this.usersService.update(user);
     }
 
@@ -81,7 +81,7 @@ export class UsersController {
         description: 'Пользователь не найден!',
         type: User,
     })
-    remove(@Param('id') id: number) {
+    remove(@Param('id') id: number, @Req() request) {
         return this.usersService.remove(+id);
     }
 
