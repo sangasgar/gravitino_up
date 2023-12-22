@@ -10,10 +10,12 @@ import { Group } from 'src/modules/group/entities/group.entity';
 import { Organization } from 'src/modules/organization/entities/organization.entity';
 import { Role } from 'src/modules/roles/entities/role.entity';
 import { JwtStrategy } from 'src/modules/strategies/jwt.strategy';
+import { TransactionHistory } from '../transaction_history/entities/transaction_history.entity';
+import { TransactionHistoryService } from '../transaction_history/transaction_history.service';
 
 @Module({
-  imports: [SequelizeModule.forFeature([User, Role, Organization, Person, Group, Auth,])],
+  imports: [SequelizeModule.forFeature([User, Role, Organization, Person, Group, Auth, TransactionHistory])],
   controllers: [AuthController],
-  providers: [AuthService, UsersService, JwtStrategy],
+  providers: [AuthService, UsersService, JwtStrategy, TransactionHistoryService],
 })
 export class AuthModule { }
