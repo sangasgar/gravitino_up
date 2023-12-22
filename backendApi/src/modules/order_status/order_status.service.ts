@@ -67,7 +67,7 @@ export class OrderStatusService {
         throw new HttpException('Статус заказа не найден!', HttpStatus.BAD_REQUEST);
       }
 
-      await foundStatus.update(updatedOrderStatus, transactionHost).catch((error) => {
+      result = await foundStatus.update(updatedOrderStatus, transactionHost).catch((error) => {
         let errorMessage = error.message;
         let errorCode = HttpStatus.BAD_REQUEST;
 

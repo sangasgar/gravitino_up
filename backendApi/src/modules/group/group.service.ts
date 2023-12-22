@@ -64,7 +64,7 @@ export class GroupService {
         throw new HttpException('Группа не найдена!', HttpStatus.NOT_FOUND)
       }
 
-      await foundObject.update(updatedGroup, transactionHost).catch((error) => {
+      result = await foundObject.update(updatedGroup, transactionHost).catch((error) => {
         let errorMessage = error.message;
         let errorCode = HttpStatus.BAD_REQUEST;
 

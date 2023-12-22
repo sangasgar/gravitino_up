@@ -70,7 +70,7 @@ export class PriorityService {
 
       const historyDto = {
         "user_id": user_id,
-        "comment": `Изменен приоритет #${result.organization_type_id}`,
+        "comment": `Изменен приоритет #${result.priority_id}`,
       }
       await this.historyService.create(historyDto);;
     })
