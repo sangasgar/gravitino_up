@@ -9,10 +9,12 @@ import { Organization } from 'src/modules/organization/entities/organization.ent
 import { User } from 'src/modules/users/entities/user.entity';
 import { OrderStatus } from 'src/modules/order_status/entities/order_status.entity';
 import { OrderPriority } from 'src/modules/priority/entities/priority.entity';
+import { TransactionHistory } from '../transaction_history/entities/transaction_history.entity';
+import { TransactionHistoryService } from '../transaction_history/transaction_history.service';
 
 @Module({
-  imports: [SequelizeModule.forFeature([Order, Task, Facility, Organization, User, OrderStatus, OrderPriority])],
+  imports: [SequelizeModule.forFeature([Order, Task, Facility, Organization, User, OrderStatus, OrderPriority, TransactionHistory])],
   controllers: [OrderController],
-  providers: [OrderService],
+  providers: [OrderService, TransactionHistoryService],
 })
 export class OrderModule { }
