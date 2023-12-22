@@ -14,7 +14,7 @@ export class CheckpointController {
   @UseGuards(JwtAuthGuard)
   @Post()
   create(@Body() createCheckpointDto: CreateCheckpointDto, @Req() request) {
-    return this.checkpointService.create(createCheckpointDto);
+    return this.checkpointService.create(createCheckpointDto, request.user.user_id);
   }
 
   @UseGuards(JwtAuthGuard)
@@ -32,12 +32,12 @@ export class CheckpointController {
   @UseGuards(JwtAuthGuard)
   @Patch(':id')
   update(@Body() updateCheckpointDto: UpdateCheckpointDto, @Req() request) {
-    return this.checkpointService.update(updateCheckpointDto);
+    return this.checkpointService.update(updateCheckpointDto, request.user.user_id);
   }
 
   @UseGuards(JwtAuthGuard)
   @Delete(':id')
   remove(@Param('id') id: number, @Req() request) {
-    return this.checkpointService.remove(+id);
+    return this.checkpointService.remove(+id, request.user.user_id);
   }
 }

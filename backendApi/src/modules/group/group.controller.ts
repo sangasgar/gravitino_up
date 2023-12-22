@@ -14,7 +14,7 @@ export class GroupController {
   @UseGuards(JwtAuthGuard)
   @Post()
   create(@Body() createGroupDto: CreateGroupDto, @Req() request) {
-    return this.groupService.create(createGroupDto);
+    return this.groupService.create(createGroupDto, request.user.user_id);
   }
 
   @UseGuards(JwtAuthGuard)
@@ -32,12 +32,12 @@ export class GroupController {
   @UseGuards(JwtAuthGuard)
   @Patch(':id')
   update(@Body() updateGroupDto: UpdateGroupDto, @Req() request) {
-    return this.groupService.update(updateGroupDto);
+    return this.groupService.update(updateGroupDto, request.user.user_id);
   }
 
   @UseGuards(JwtAuthGuard)
   @Delete(':id')
   remove(@Param('id') id: number, @Req() request) {
-    return this.groupService.remove(+id);
+    return this.groupService.remove(+id, request.user.user_id);
   }
 }

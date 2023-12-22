@@ -17,7 +17,7 @@ export class RolesController {
   @ApiOperation({ summary: 'Создание роли' })
   @ApiResponse({ status: 201, description: 'Роль успешно создана!' })
   create(@Body() createRoleDto: CreateRoleDto, @Req() request) {
-    return this.rolesService.create(createRoleDto);
+    return this.rolesService.create(createRoleDto, request.user.user_id);
   }
 
   @Get()
@@ -43,7 +43,7 @@ export class RolesController {
   @ApiResponse({ status: 200, description: 'Роль успешно обновлена!' })
   @ApiResponse({ status: 404, description: 'Роль не существует!' })
   update(@Body() updateRoleDto: UpdateRoleDto, @Req() request) {
-    return this.rolesService.update(updateRoleDto);
+    return this.rolesService.update(updateRoleDto, request.user.user_id);
   }
 
   @UseGuards(JwtAuthGuard)
@@ -52,6 +52,6 @@ export class RolesController {
   @ApiResponse({ status: 201, description: 'Роль успешно удалена!' })
   @ApiResponse({ status: 404, description: 'Роль не существует!' })
   remove(@Param('id') id: number, @Req() request) {
-    return this.rolesService.remove(+id);
+    return this.rolesService.remove(+id, request.user.user_id);
   }
 }

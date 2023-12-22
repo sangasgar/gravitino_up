@@ -14,7 +14,7 @@ export class OrganizationTypeController {
   @UseGuards(JwtAuthGuard)
   @Post()
   create(@Body() createOrganizationTypeDto: CreateOrganizationTypeDto, @Req() request) {
-    return this.organizationTypeService.create(createOrganizationTypeDto);
+    return this.organizationTypeService.create(createOrganizationTypeDto, request.user.user_id);
   }
 
   @Get()
@@ -30,12 +30,12 @@ export class OrganizationTypeController {
   @UseGuards(JwtAuthGuard)
   @Patch(':id')
   update(@Body() updateOrganizationTypeDto: UpdateOrganizationTypeDto, @Req() request) {
-    return this.organizationTypeService.update(updateOrganizationTypeDto);
+    return this.organizationTypeService.update(updateOrganizationTypeDto, request.user.user_id);
   }
 
   @UseGuards(JwtAuthGuard)
   @Delete(':id')
   remove(@Param('id') id: number, @Req() request) {
-    return this.organizationTypeService.remove(+id);
+    return this.organizationTypeService.remove(+id, request.user.user_id);
   }
 }

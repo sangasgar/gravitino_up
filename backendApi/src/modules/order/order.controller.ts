@@ -14,7 +14,7 @@ export class OrderController {
   @UseGuards(JwtAuthGuard)
   @Post()
   create(@Body() createOrderDto: CreateOrderDto, @Req() request) {
-    return this.orderService.create(createOrderDto);
+    return this.orderService.create(createOrderDto, request.user.user_id);
   }
 
   @UseGuards(JwtAuthGuard)
@@ -32,12 +32,12 @@ export class OrderController {
   @UseGuards(JwtAuthGuard)
   @Patch()
   update(@Body() updateOrderDto: UpdateOrderDto, @Req() request) {
-    return this.orderService.update(updateOrderDto);
+    return this.orderService.update(updateOrderDto, request.user.user_id);
   }
 
   @UseGuards(JwtAuthGuard)
   @Delete(':id')
   remove(@Param('id') id: number, @Req() request) {
-    return this.orderService.remove(+id);
+    return this.orderService.remove(+id, request.user.user_id);
   }
 }

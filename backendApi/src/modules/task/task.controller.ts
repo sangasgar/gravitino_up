@@ -16,7 +16,7 @@ export class TaskController {
   @UseGuards(JwtAuthGuard)
   @Post()
   create(@Body() createTaskDto: CreateTaskDto, @Req() request) {
-    return this.taskService.create(createTaskDto);
+    return this.taskService.create(createTaskDto, request.user.user_id);
   }
 
   @UseGuards(JwtAuthGuard)
@@ -34,12 +34,12 @@ export class TaskController {
   @UseGuards(JwtAuthGuard)
   @Patch(':id')
   update(@Body() updateTaskDto: UpdateTaskDto, @Req() request) {
-    return this.taskService.update(updateTaskDto);
+    return this.taskService.update(updateTaskDto, request.user.user_id);
   }
 
   @UseGuards(JwtAuthGuard)
   @Delete(':id')
   remove(@Param('id') id: number, @Req() request) {
-    return this.taskService.remove(+id);
+    return this.taskService.remove(+id, request.user.user_id);
   }
 }

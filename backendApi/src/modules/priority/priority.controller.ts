@@ -14,7 +14,7 @@ export class PriorityController {
   @UseGuards(JwtAuthGuard)
   @Post()
   create(@Body() createPriorityDto: CreatePriorityDto, @Req() request) {
-    return this.priorityService.create(createPriorityDto);
+    return this.priorityService.create(createPriorityDto, request.user.user_id);
   }
 
   @Get()
@@ -30,12 +30,12 @@ export class PriorityController {
   @UseGuards(JwtAuthGuard)
   @Patch()
   update(@Body() updatePriorityDto: UpdatePriorityDto, @Req() request) {
-    return this.priorityService.update(updatePriorityDto);
+    return this.priorityService.update(updatePriorityDto, request.user.user_id);
   }
 
   @UseGuards(JwtAuthGuard)
   @Delete(':id')
   remove(@Param('id') id: string, @Req() request) {
-    return this.priorityService.remove(+id);
+    return this.priorityService.remove(+id, request.user.user_id);
   }
 }
