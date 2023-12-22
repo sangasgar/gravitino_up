@@ -34,6 +34,12 @@ import { AuthModule } from '../auth/auth.module';
 import { CategoryModule } from '../category/category.module';
 import { CheckpointModule } from '../checkpoint/checkpoint.module';
 import { Order } from '../order/entities/order.entity';
+import { Permission } from '../permissions/entities/permission.entity';
+import { RolePermission } from '../roles_permissions/entities/roles_permission.entity';
+import { TransactionHistory } from '../transaction_history/entities/transaction_history.entity';
+import { PermissionsModule } from '../permissions/permissions.module';
+import { RolesPermissionsModule } from '../roles_permissions/roles_permissions.module';
+import { TransactionHistoryModule } from '../transaction_history/transaction_history.module';
 
 @Module({
   imports: [
@@ -69,6 +75,9 @@ import { Order } from '../order/entities/order.entity';
           FileType,
           Report,
           Order,
+          Permission,
+          RolePermission,
+          TransactionHistory,
         ],
       }),
       inject: [ConfigService],
@@ -95,6 +104,10 @@ import { Order } from '../order/entities/order.entity';
     FileTypeModule,
     ReportModule,
     OrderModule,
+
+    PermissionsModule,
+    RolesPermissionsModule,
+    TransactionHistoryModule,
   ],
 })
 export class AppModule { }

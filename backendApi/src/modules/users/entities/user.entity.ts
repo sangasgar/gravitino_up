@@ -9,6 +9,7 @@ import { Person } from 'src/modules/person/entities/person.entity';
 import { OrderPriority } from 'src/modules/priority/entities/priority.entity';
 import { Report } from 'src/modules/report/entities/report.entity';
 import { Role } from 'src/modules/roles/entities/role.entity';
+import { TransactionHistory } from 'src/modules/transaction_history/entities/transaction_history.entity';
 
 @Table
 export class User extends Model<User> {
@@ -90,4 +91,7 @@ export class User extends Model<User> {
 
     @HasMany(type => Order, 'executor_id')
     order_executors: NonAttribute<Order[]>;
+
+    @HasMany(type => TransactionHistory, 'user_id')
+    history: NonAttribute<TransactionHistory[]>;
 }
