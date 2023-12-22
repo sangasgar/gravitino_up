@@ -31,6 +31,22 @@ export class Organization extends Model<Organization> {
     @Column({ type: DataType.STRING(30), allowNull: false, })
     organization_name: string;
 
+    @ApiProperty()
+    @Column({ type: DataType.STRING, allowNull: false, })
+    full_name: string;
+
+    @ApiProperty()
+    @Column({ type: DataType.STRING, allowNull: false, })
+    short_name: string;
+
+    @ApiProperty()
+    @Column({ type: DataType.STRING, allowNull: false, })
+    register_number: string;
+
+    @ApiProperty()
+    @Column({ type: DataType.STRING, allowNull: false, })
+    bic: string;
+
     @ApiProperty({ example: '79001234567', description: 'Номер телефона организации' })
     @Column({ type: DataType.STRING, allowNull: false })
     phone: string;

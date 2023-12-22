@@ -20,4 +20,9 @@ export class UpdateCheckpointDto {
     @IsOptional()
     @ApiProperty()
     location?: string;
+
+    @IsString()
+    @IsOptional()
+    @ApiProperty()
+    city?: string;
 }

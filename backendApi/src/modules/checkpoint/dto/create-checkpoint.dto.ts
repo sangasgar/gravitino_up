@@ -13,4 +13,8 @@ export class CreateCheckpointDto {
     @IsString()
     @ApiProperty()
     location: string;
+
+    @IsString()
+    @ApiProperty()
+    city: string;
 }

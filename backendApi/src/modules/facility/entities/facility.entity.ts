@@ -30,9 +30,13 @@ export class Facility extends Model<Facility> {
     @Column({ type: DataType.STRING(30), allowNull: false, })
     facility_name: string;
 
-    @ApiProperty({ example: 'г. Москва', description: 'Местоположение пункта пропуска' })
+    @ApiProperty({ example: 'улица У.', description: 'Местоположение пункта пропуска' })
     @Column({ type: DataType.STRING, allowNull: false, })
     location: string;
+
+    @ApiProperty({ example: 'Москва', description: 'Город' })
+    @Column({ type: DataType.STRING, allowNull: false, })
+    city: string;
 
     @HasMany(type => Order, 'facility_id')
     orders: NonAttribute<Order[]>;

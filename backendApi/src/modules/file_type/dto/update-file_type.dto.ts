@@ -12,4 +12,9 @@ export class UpdateFileTypeDto {
     @IsOptional()
     @ApiProperty()
     type_name?: string;
+
+    @IsString()
+    @IsOptional()
+    @ApiProperty()
+    file_extension?: string;
 }

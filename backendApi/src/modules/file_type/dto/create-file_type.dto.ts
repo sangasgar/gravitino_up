@@ -5,4 +5,8 @@ export class CreateFileTypeDto {
     @IsString()
     @ApiProperty()
     type_name: string;
+
+    @IsString()
+    @ApiProperty()
+    file_extension: string;
 }

@@ -36,9 +36,13 @@ export class Checkpoint extends Model<Checkpoint> {
     @Column({ type: DataType.STRING(30), allowNull: false, })
     checkpoint_name: string;
 
-    @ApiProperty({ example: 'г. Москва', description: 'Местоположение пункта пропуска' })
+    @ApiProperty({ example: 'улица У.', description: 'Местоположение пункта пропуска' })
     @Column({ type: DataType.STRING, allowNull: false, })
     location: string;
+
+    @ApiProperty({ example: 'г. Москва', description: 'Город' })
+    @Column({ type: DataType.STRING, allowNull: false, })
+    city: string;
 
     @HasMany(type => Facility, 'checkpoint_id')
     facilities: NonAttribute<Facility[]>;

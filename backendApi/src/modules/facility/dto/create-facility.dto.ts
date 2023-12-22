@@ -13,4 +13,8 @@ export class CreateFacilityDto {
     @IsString()
     @ApiProperty()
     location: string;
+
+    @IsString()
+    @ApiProperty()
+    city: string;
 }
