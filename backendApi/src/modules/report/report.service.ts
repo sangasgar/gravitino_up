@@ -34,7 +34,7 @@ export class ReportService {
         throw new HttpException('Тип файла не найден!', HttpStatus.BAD_REQUEST);
       }
 
-      var result = await this.reportRepository.create(createReportDto, transactionHost).catch((error) => {
+      result = await this.reportRepository.create(createReportDto, transactionHost).catch((error) => {
         let errorMessage = error.message;
         let errorCode = HttpStatus.BAD_REQUEST;
 
