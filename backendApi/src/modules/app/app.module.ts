@@ -82,18 +82,17 @@ import { TransactionHistoryModule } from '../transaction_history/transaction_his
       }),
       inject: [ConfigService],
     }),
-    UsersModule,
     AuthModule,
+    UsersModule,
     PersonModule,
     RolesModule,
     GroupModule,
 
-    OrganizationModule,
     OrganizationTypeModule,
+    OrganizationModule,
 
     OrderStatusModule,
     PriorityModule,
-
     TaskModule,
     CategoryModule,
     OrderModule,
@@ -103,7 +102,6 @@ import { TransactionHistoryModule } from '../transaction_history/transaction_his
 
     FileTypeModule,
     ReportModule,
-    OrderModule,
 
     PermissionsModule,
     RolesPermissionsModule,
