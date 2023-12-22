@@ -62,14 +62,13 @@ export class OrganizationTypeService {
     await this.sequelize.transaction(async trx => {
       const transactionHost = { transaction: trx };
 
-      const organization_type_id = updatedOrganizationType.organization_type_id;
-      const organization_type = await this.organizationTypeRepository.findOne({ where: { organization_type_id } });
+      const organization_type = await this.organizationTypeRepository.findOne({ where: { organization_type_id: updatedOrganizationType.organization_type_id } });
 
       if (!organization_type) {
         throw new HttpException('Тип не найден!', HttpStatus.NOT_FOUND);
       }
 
-      result = await result.update(updatedOrganizationType, transactionHost).catch((error) => {
+      result = await organization_type.update(updatedOrganizationType, transactionHost).catch((error) => {
         let errorMessage = error.message;
         let errorCode = HttpStatus.BAD_REQUEST;
 
