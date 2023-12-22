@@ -20,4 +20,9 @@ export class UpdateFacilityDto {
     @IsOptional()
     @ApiProperty()
     location?: string;
+
+    @IsString()
+    @IsOptional()
+    @ApiProperty()
+    city?: string;
 }

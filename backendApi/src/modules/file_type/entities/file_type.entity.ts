@@ -14,6 +14,10 @@ export class FileType extends Model<FileType> {
     @Column({ type: DataType.STRING(30), allowNull: false, })
     type_name: string;
 
+    @ApiProperty({ example: '.xls', description: 'Расширение файла' })
+    @Column({ type: DataType.STRING(30), allowNull: false, })
+    file_extension: string;
+
     @HasMany(type => Report, 'file_type_id')
     reports: NonAttribute<Report[]>;
 }

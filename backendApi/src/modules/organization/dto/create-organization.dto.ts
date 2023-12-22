@@ -12,6 +12,22 @@ export class CreateOrganizationDto {
 
     @IsString()
     @ApiProperty()
+    full_name: string;
+
+    @IsString()
+    @ApiProperty()
+    short_name: string;
+
+    @IsString()
+    @ApiProperty()
+    register_number: string;
+
+    @IsString()
+    @ApiProperty()
+    bic: string;
+
+    @IsString()
+    @ApiProperty()
     phone: string;
 
     @IsString()
