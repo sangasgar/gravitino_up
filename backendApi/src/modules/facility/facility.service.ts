@@ -1,32 +1,48 @@
-import { Injectable } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { CreateFacilityDto } from './dto/create-facility.dto';
 import { UpdateFacilityDto } from './dto/update-facility.dto';
 import { InjectModel } from '@nestjs/sequelize';
 import { Facility } from './entities/facility.entity';
 import { Checkpoint } from 'src/modules/checkpoint/entities/checkpoint.entity';
+import { TransactionHistoryService } from '../transaction_history/transaction_history.service';
+import { Sequelize } from 'sequelize-typescript';
 
 @Injectable()
 export class FacilityService {
   constructor(
     @InjectModel(Facility) private facilityRepository: typeof Facility,
     @InjectModel(Checkpoint) private checkpointRepository: typeof Checkpoint,
+    private readonly historyService: TransactionHistoryService,
+    private readonly sequelize: Sequelize,
   ) { }
 
-  async create(facility: CreateFacilityDto) {
-    const checkpoint_id = facility.checkpoint_id;
-    const foundCheckpoint = await this.checkpointRepository.findOne({ where: { checkpoint_id } });
+  async create(facility: CreateFacilityDto, user_id: number) {
+    let result;
 
-    if (foundCheckpoint == null) {
-      return Promise.reject(
-        {
-          statusCode: 404,
-          message: 'Пункт пропуска не найден!'
-        }
-      )
-    }
+    await this.sequelize.transaction(async trx => {
+      const transactionHost = { transaction: trx };
 
-    var newObject = await this.facilityRepository.create(facility);
-    return newObject;
+      const foundCheckpoint = await this.checkpointRepository.findOne({ where: { checkpoint_id: facility.checkpoint_id } });
+
+      if (foundCheckpoint == null) {
+        throw new HttpException('Пункт пропуска не найден!', HttpStatus.BAD_REQUEST);
+      }
+
+      result = await this.facilityRepository.create(facility, transactionHost).catch((error) => {
+        let errorMessage = error.message;
+        let errorCode = HttpStatus.BAD_REQUEST;
+
+        throw new HttpException(errorMessage, errorCode);
+      });
+
+      const historyDto = {
+        "user_id": user_id,
+        "comment": `Создан объект обслуживания #${result.facility_id}`,
+      }
+      await this.historyService.create(historyDto);
+    });
+
+    return result;
   }
 
   async findAll() {
@@ -48,52 +64,65 @@ export class FacilityService {
     }
   }
 
-  async update(updatedFacility: UpdateFacilityDto) {
-    const facility_id = updatedFacility.facility_id;
-    const foundFacility = await this.facilityRepository.findOne({ where: { facility_id }, include: [Checkpoint], attributes: { exclude: ['organization_id'] } });
+  async update(updatedFacility: UpdateFacilityDto, user_id: number) {
+    let result;
 
-    if (foundFacility == null) {
-      return Promise.reject(
-        {
-          statusCode: 404,
-          message: 'Объект обслуживания не найден!'
-        }
-      )
-    }
+    await this.sequelize.transaction(async trx => {
+      const transactionHost = { transaction: trx };
 
-    var foundCheckpoint;
-    if (updatedFacility.checkpoint_id) {
-      const checkpoint_id = updatedFacility.checkpoint_id;
-      foundCheckpoint = await this.checkpointRepository.findOne({ where: { checkpoint_id } });
+      const foundFacility = await this.facilityRepository.findOne({ where: { facility_id: updatedFacility.facility_id }, include: [Checkpoint], attributes: { exclude: ['organization_id'] } });
 
-      if (foundCheckpoint == null) {
-        return Promise.reject(
-          {
-            statusCode: 404,
-            message: 'Пункт пропуска не найден!'
-          }
-        )
+      if (foundFacility == null) {
+        throw new HttpException('Объект обслуживания не найден!', HttpStatus.BAD_REQUEST);
       }
-    }
 
-    await foundFacility.update(updatedFacility);
+      if (updatedFacility.checkpoint_id != undefined) {
+        const foundCheckpoint = await this.checkpointRepository.findOne({ where: { checkpoint_id: updatedFacility.checkpoint_id } });
 
-    return updatedFacility;
+        if (foundCheckpoint == null) {
+          throw new HttpException('Пункт пропуска не найден!', HttpStatus.BAD_REQUEST);
+        }
+      }
+
+      result = await foundFacility.update(updatedFacility, transactionHost).catch((error) => {
+        let errorMessage = error.message;
+        let errorCode = HttpStatus.BAD_REQUEST;
+
+        throw new HttpException(errorMessage, errorCode);
+      });
+
+      const historyDto = {
+        "user_id": user_id,
+        "comment": `Изменен объект обслуживания #${result.facility_id}`,
+      }
+      await this.historyService.create(historyDto);
+    });
+
+    return result;
   }
 
-  async remove(facility_id: number) {
-    const foundObject = await this.facilityRepository.findOne({ where: { facility_id } });
+  async remove(facility_id: number, user_id: number) {
+    await this.sequelize.transaction(async trx => {
+      const foundObject = await this.facilityRepository.findOne({ where: { facility_id } });
 
-    if (foundObject == null) {
-      return Promise.reject(
-        {
-          statusCode: 404,
-          message: 'Объект обслуживания не найден!'
-        }
-      )
-    } else {
-      await this.facilityRepository.destroy({ where: { facility_id } });
-      return { statusCode: 200, message: 'Строка успешно удалена!' };
-    }
+      if (foundObject == null) {
+        throw new HttpException('Объект обслуживания не найден!', HttpStatus.BAD_REQUEST);
+      }
+
+      await this.facilityRepository.destroy({ where: { facility_id }, transaction: trx }).catch((error) => {
+        let errorMessage = error.message;
+        let errorCode = HttpStatus.BAD_REQUEST;
+
+        throw new HttpException(errorMessage, errorCode);
+      });
+
+      const historyDto = {
+        "user_id": user_id,
+        "comment": `Удален объект обслуживания #${facility_id}`,
+      }
+      await this.historyService.create(historyDto);
+    });
+
+    return { statusCode: 200, message: 'Строка успешно удалена!' };
   }
 }

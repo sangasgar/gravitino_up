@@ -89,15 +89,20 @@ export class CategoryService {
         throw new HttpException('Категория не найдена!', HttpStatus.NOT_FOUND);
       }
 
-      await this.categoryRepository.destroy({ where: { category_id }, transaction: trx });
+      await this.categoryRepository.destroy({ where: { category_id }, transaction: trx }).catch((error) => {
+        let errorMessage = error.message;
+        let errorCode = HttpStatus.BAD_REQUEST;
+
+        throw new HttpException(errorMessage, errorCode);
+      });
 
       const historyDto = {
         "user_id": user_id,
         "comment": `Удалена категория #${category_id}`,
       }
       await this.historyService.create(historyDto);
-
-      return { statusCode: 200, message: 'Строка успешно удалена!' };
     });
+
+    return { statusCode: 200, message: 'Строка успешно удалена!' };
   }
 }

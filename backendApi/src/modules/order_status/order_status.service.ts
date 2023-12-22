@@ -1,21 +1,44 @@
-import { Injectable } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { CreateOrderStatusDto } from './dto/create-order_status.dto';
 import { UpdateOrderStatusDto } from './dto/update-order_status.dto';
 import { OrderStatus } from './entities/order_status.entity';
 import { InjectModel } from '@nestjs/sequelize';
+import { TransactionHistoryService } from '../transaction_history/transaction_history.service';
+import { Sequelize } from 'sequelize-typescript';
 
 @Injectable()
 export class OrderStatusService {
-  constructor(@InjectModel(OrderStatus) private orderStatusRepository: typeof OrderStatus,) { }
+  constructor(
+    @InjectModel(OrderStatus) private orderStatusRepository: typeof OrderStatus,
+    private readonly historyService: TransactionHistoryService,
+    private readonly sequelize: Sequelize,
+  ) { }
 
-  async create(orderStatus: CreateOrderStatusDto) {
-    var newOrderStatus = await this.orderStatusRepository.create(orderStatus);
+  async create(orderStatus: CreateOrderStatusDto, user_id: number) {
+    let result;
 
-    return newOrderStatus;
+    await this.sequelize.transaction(async trx => {
+      const transactionHost = { transaction: trx };
+
+      result = await this.orderStatusRepository.create(orderStatus, transactionHost).catch((error) => {
+        let errorMessage = error.message;
+        let errorCode = HttpStatus.BAD_REQUEST;
+
+        throw new HttpException(errorMessage, errorCode);
+      });
+
+      const historyDto = {
+        "user_id": user_id,
+        "comment": `Создан статус заказа #${result.status_id}`,
+      }
+      await this.historyService.create(historyDto);
+    });
+
+    return result;
   }
 
-  findAll() {
-    return this.orderStatusRepository.findAll();
+  async findAll() {
+    return await this.orderStatusRepository.findAll();
   }
 
   async findOne(status_id: number) {
@@ -33,37 +56,60 @@ export class OrderStatusService {
     }
   }
 
-  async update(updatedOrderStatus: UpdateOrderStatusDto) {
-    const status_id = updatedOrderStatus.status_id;
-    const foundStatus = await this.orderStatusRepository.findOne({ where: { status_id } });
+  async update(updatedOrderStatus: UpdateOrderStatusDto, user_id: number) {
+    let result;
 
-    if (foundStatus == null) {
-      return Promise.reject(
-        {
-          statusCode: 404,
-          message: 'Статус заказа не найден!'
-        }
-      )
-    }
+    await this.sequelize.transaction(async trx => {
+      const transactionHost = { transaction: trx };
+      const foundStatus = await this.orderStatusRepository.findOne({ where: { status_id: updatedOrderStatus.status_id } });
 
-    await foundStatus.update(updatedOrderStatus);
+      if (foundStatus == null) {
+        throw new HttpException('Статус заказа не найден!', HttpStatus.BAD_REQUEST);
+      }
 
-    return updatedOrderStatus;
+      await foundStatus.update(updatedOrderStatus, transactionHost).catch((error) => {
+        let errorMessage = error.message;
+        let errorCode = HttpStatus.BAD_REQUEST;
+
+        throw new HttpException(errorMessage, errorCode);
+      });
+
+      const historyDto = {
+        "user_id": user_id,
+        "comment": `Изменен статус заказа #${result.status_id}`,
+      }
+      await this.historyService.create(historyDto);
+    });
+
+    return result;
   }
 
-  async remove(status_id: number) {
-    const result = await this.orderStatusRepository.findOne({ where: { status_id } });
+  async remove(status_id: number, user_id: number) {
+    await this.sequelize.transaction(async trx => {
+      const result = await this.orderStatusRepository.findOne({ where: { status_id } });
 
-    if (result == null) {
-      return Promise.reject(
-        {
-          statusCode: 404,
-          message: 'Статус заказа не найден!'
-        }
-      )
-    } else {
-      await this.orderStatusRepository.destroy({ where: { status_id } });
-      return { statusCode: 200, message: 'Строка успешно удалена!' };
-    }
+      if (result == null) {
+        return Promise.reject(
+          {
+            statusCode: 404,
+            message: 'Статус заказа не найден!'
+          }
+        )
+      }
+      await this.orderStatusRepository.destroy({ where: { status_id }, transaction: trx }).catch((error) => {
+        let errorMessage = error.message;
+        let errorCode = HttpStatus.BAD_REQUEST;
+
+        throw new HttpException(errorMessage, errorCode);
+      });
+
+      const historyDto = {
+        "user_id": user_id,
+        "comment": `Удален статус заказа #${status_id}`,
+      }
+      await this.historyService.create(historyDto);
+    });
+
+    return { statusCode: 200, message: 'Строка успешно удалена!' };
   }
 }

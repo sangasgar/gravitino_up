@@ -17,7 +17,7 @@ export class OrganizationController {
   @ApiOperation({ summary: 'Создание новой организации' })
   @ApiResponse({ status: 201, description: 'Организация успешно создана!' })
   create(@Body() createOrganizationDto: CreateOrganizationDto, @Req() request) {
-    return this.organizationService.create(createOrganizationDto);
+    return this.organizationService.create(createOrganizationDto, request.user.user_id);
   }
 
   @UseGuards(JwtAuthGuard)
@@ -46,7 +46,7 @@ export class OrganizationController {
   @ApiResponse({ status: 404, description: 'Организация не существует!' })
   @ApiResponse({ status: 403, description: 'Forbidden!' })
   update(@Body() updateOrganizationDto: UpdateOrganizationDto, @Req() request) {
-    return this.organizationService.update(updateOrganizationDto);
+    return this.organizationService.update(updateOrganizationDto, request.user.user_id);
   }
 
   @UseGuards(JwtAuthGuard)
@@ -55,6 +55,6 @@ export class OrganizationController {
   @ApiResponse({ status: 201, description: 'Организация успешно удалена!' })
   @ApiResponse({ status: 404, description: 'Организация не существует!' })
   remove(@Param('id') id: number, @Req() request) {
-    return this.organizationService.remove(+id);
+    return this.organizationService.remove(+id, request.user.user_id);
   }
 }

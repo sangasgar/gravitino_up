@@ -17,7 +17,7 @@ export class FileTypeController {
   @ApiOperation({ summary: 'Создание нового типа файла' })
   @ApiResponse({ status: 201, description: 'Тип файла успешно создан!' })
   create(@Body() createFileTypeDto: CreateFileTypeDto, @Req() request) {
-    return this.fileTypeService.create(createFileTypeDto);
+    return this.fileTypeService.create(createFileTypeDto, request.user.user_id);
   }
 
   @Get()
@@ -43,7 +43,7 @@ export class FileTypeController {
   @ApiResponse({ status: 200, description: 'Тип файла успешно обновлен!' })
   @ApiResponse({ status: 404, description: 'Тип файла не существует!' })
   update(@Body() updateFileTypeDto: UpdateFileTypeDto, @Req() request) {
-    return this.fileTypeService.update(updateFileTypeDto);
+    return this.fileTypeService.update(updateFileTypeDto, request.user.user_id);
   }
 
   @UseGuards(JwtAuthGuard)
@@ -52,6 +52,6 @@ export class FileTypeController {
   @ApiResponse({ status: 201, description: 'Тип файла успешно удален!' })
   @ApiResponse({ status: 404, description: 'Тип файла не существует!' })
   remove(@Param('id') id: number, @Req() request) {
-    return this.fileTypeService.remove(+id);
+    return this.fileTypeService.remove(+id, request.user.user_id);
   }
 }

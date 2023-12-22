@@ -12,6 +12,7 @@ import { CreatePersonDto } from 'src/modules/person/dto/create-person.dto';
 import { UpdatePersonDto } from 'src/modules/person/dto/update-person.dto';
 import { Group } from 'src/modules/group/entities/group.entity';
 import { Sequelize } from 'sequelize-typescript';
+import { TransactionHistoryService } from '../transaction_history/transaction_history.service';
 
 @Injectable()
 export class UsersService {
@@ -21,11 +22,12 @@ export class UsersService {
         @InjectModel(Role) private roleRepository: typeof Role,
         @InjectModel(Organization) private organizationRepository: typeof Organization,
         @InjectModel(Group) private groupRepository: typeof Group,
+        private readonly historyService: TransactionHistoryService,
         private sequelize: Sequelize,
     ) { }
 
     async create(user: CreateUserDto) {
-        let result
+        let result;
 
         await this.sequelize.transaction(async trx => {
             const transactionHost = { transaction: trx };
@@ -34,38 +36,21 @@ export class UsersService {
             const role = await this.roleRepository.findOne({ where: { role_id } })
 
             if (!role) {
-                return Promise.reject(
-                    {
-                        statusCode: HttpStatus.NOT_FOUND,
-                        message: 'Роль не найдена!'
-                    }
-                )
+                throw new HttpException('Роль не найдена!', HttpStatus.BAD_REQUEST);
             }
 
             const organization_id = user.organization_id;
             const organization = await this.organizationRepository.findOne({ where: { organization_id } });
 
             if (!organization) {
-                return Promise.reject(
-                    {
-                        statusCode: HttpStatus.NOT_FOUND,
-                        message: 'Организация не найдена!'
-                    }
-                )
+                throw new HttpException('Организация не найдена!', HttpStatus.BAD_REQUEST);
             }
 
-            var group;
             if (user.group_id != undefined) {
-                const group_id = user.group_id;
-                group = await this.groupRepository.findOne({ where: { group_id } });
+                const group = await this.groupRepository.findOne({ where: { group_id: user.group_id } });
 
                 if (group == null) {
-                    return Promise.reject(
-                        {
-                            statusCode: HttpStatus.NOT_FOUND,
-                            message: 'Группа не найдена!'
-                        }
-                    )
+                    throw new HttpException('Группа не найдена!', HttpStatus.BAD_REQUEST);
                 }
             }
 
@@ -80,9 +65,14 @@ export class UsersService {
             createPersonDto.gender = user.gender;
             createPersonDto.phone = user.phone;
 
-            const personResult = await this.personRepository.create(user, transactionHost)
+            const personResult = await this.personRepository.create(user, transactionHost).catch((error) => {
+                let errorMessage = error.message;
+                let errorCode = HttpStatus.BAD_REQUEST;
 
-            user.person_id = personResult.dataValues.person_id
+                throw new HttpException(errorMessage, errorCode);
+            });
+
+            user.person_id = personResult.dataValues.person_id;
 
             result = await this.userRepository.create(user, transactionHost).catch((error) => {
                 let errorMessage = error.message;
@@ -94,13 +84,20 @@ export class UsersService {
 
                 throw new HttpException(errorMessage, errorCode);
             });
+
+            const historyDto = {
+                "user_id": result.user_id,
+                "comment": `Создан пользователь #${result.user_id}`,
+            }
+            await this.historyService.create(historyDto);
         })
 
-        return result
+        return result;
     }
 
-    async update(updatedUser: UpdateUserDto) {
-        let result
+    async update(updatedUser: UpdateUserDto, user_id: number) {
+        let result;
+
         await this.sequelize.transaction(async trx => {
             const transactionHost = { transaction: trx };
 
@@ -108,56 +105,28 @@ export class UsersService {
             const foundUser = await this.userRepository.findOne({ where: { user_id: id }, include: [Person, Group] });
 
             if (foundUser == null) {
-                return Promise.reject(
-                    {
-                        statusCode: HttpStatus.NOT_FOUND,
-                        message: 'Пользователь не найден!'
-                    }
-                )
+                throw new HttpException('Пользователь не найден!', HttpStatus.NOT_FOUND);
             }
 
-            var role;
             if (updatedUser.role_id != undefined) {
-                const role_id = updatedUser.role_id;
-                role = await this.roleRepository.findOne({ where: { role_id } });
-
+                const role = await this.roleRepository.findOne({ where: { role_id: updatedUser.role_id } });
                 if (role == null) {
-                    return Promise.reject(
-                        {
-                            statusCode: HttpStatus.NOT_FOUND,
-                            message: 'Роль не найдена!'
-                        }
-                    )
+                    throw new HttpException('Роль не найдена!', HttpStatus.BAD_REQUEST);
                 }
             }
 
-            var organization;
             if (updatedUser.organization_id != undefined) {
-                const organization_id = updatedUser.organization_id;
-                organization = await this.organizationRepository.findOne({ where: { organization_id } });
-
+                const organization = await this.organizationRepository.findOne({ where: { organization_id: updatedUser.organization_id } });
                 if (organization == null) {
-                    return Promise.reject(
-                        {
-                            statusCode: HttpStatus.NOT_FOUND,
-                            message: 'Организация не найдена!'
-                        }
-                    )
+                    throw new HttpException('Организация не найдена!', HttpStatus.BAD_REQUEST);
                 }
             }
 
-            var group;
             if (updatedUser.group_id != undefined) {
-                const group_id = updatedUser.group_id;
-                group = await this.groupRepository.findOne({ where: { group_id } });
+                const group = await this.groupRepository.findOne({ where: { group_id: updatedUser.group_id } });
 
                 if (group == null) {
-                    return Promise.reject(
-                        {
-                            statusCode: HttpStatus.NOT_FOUND,
-                            message: 'Группа не найдена!'
-                        }
-                    )
+                    throw new HttpException('Группа не найдена!', HttpStatus.BAD_REQUEST);
                 }
             }
 
@@ -174,12 +143,7 @@ export class UsersService {
             const foundPerson = await this.personRepository.findOne({ where: { person_id } });
 
             if (foundPerson == null) {
-                return Promise.reject(
-                    {
-                        statusCode: HttpStatus.NOT_FOUND,
-                        message: 'Данные пользователя не найдены!'
-                    }
-                )
+                throw new HttpException('Данные пользователя не найдены!', HttpStatus.BAD_REQUEST);
             }
 
             const updatePersonDto = new UpdatePersonDto();
@@ -205,9 +169,15 @@ export class UsersService {
 
                 throw new HttpException(errorMessage, errorCode);
             });
+
+            const historyDto = {
+                "user_id": user_id,
+                "comment": `Изменен пользователь #${result.user_id}`,
+            }
+            await this.historyService.create(historyDto);
         })
 
-        return result
+        return result;
     }
 
     async findAll(): Promise<User[]> {
@@ -242,22 +212,40 @@ export class UsersService {
         }
     }
 
-    async remove(id: number) {
-        const result = await this.userRepository.findOne({ where: { user_id: id }, include: [Person], attributes: { exclude: ['password', 'organization_id', 'role_id', 'person_id', 'group_id'] } });
+    async remove(id: number, user_id: number) {
+        await this.sequelize.transaction(async trx => {
+            const result = await this.userRepository.findOne({ where: { user_id: id }, include: [Person], attributes: { exclude: ['password', 'organization_id', 'role_id', 'person_id', 'group_id'] } });
 
-        if (result == null) {
-            return Promise.reject(
-                {
-                    statusCode: HttpStatus.NOT_FOUND,
-                    message: 'Пользователь не найден!'
-                }
-            )
-        } else {
+            if (result == null) {
+                return Promise.reject(
+                    {
+                        statusCode: HttpStatus.NOT_FOUND,
+                        message: 'Пользователь не найден!'
+                    }
+                )
+            }
+
             const person_id = result.person.person_id;
-            await this.userRepository.destroy({ where: { user_id: id } });
-            await this.personRepository.destroy({ where: { person_id } });
+            await this.userRepository.destroy({ where: { user_id: id }, transaction: trx }).catch((error) => {
+                let errorMessage = error.message;
+                let errorCode = HttpStatus.BAD_REQUEST;
 
-            return { statusCode: 200, message: 'Данные пользователя успешно удалены!' };
-        }
+                throw new HttpException(errorMessage, errorCode);
+            });
+            await this.personRepository.destroy({ where: { person_id }, transaction: trx }).catch((error) => {
+                let errorMessage = error.message;
+                let errorCode = HttpStatus.BAD_REQUEST;
+
+                throw new HttpException(errorMessage, errorCode);
+            });
+
+            const historyDto = {
+                "user_id": user_id,
+                "comment": `Удален пользователь #${id}`,
+            }
+            await this.historyService.create(historyDto);
+        });
+
+        return { statusCode: 200, message: 'Строка успешно удалена!' };
     }
 }

@@ -17,7 +17,7 @@ export class ReportController {
   @UseGuards(JwtAuthGuard)
   @Post()
   create(@Body() createReportDto: CreateReportDto, @Req() request) {
-    return this.reportService.create(createReportDto);
+    return this.reportService.create(createReportDto, request.user.user_id);
   }
 
   @UseGuards(JwtAuthGuard)
@@ -35,12 +35,12 @@ export class ReportController {
   @UseGuards(JwtAuthGuard)
   @Patch()
   update(@Body() updateReportDto: UpdateReportDto, @Req() request) {
-    return this.reportService.update(updateReportDto);
+    return this.reportService.update(updateReportDto, request.user.user_id);
   }
 
   @UseGuards(JwtAuthGuard)
   @Delete(':id')
   remove(@Param('id') id: string, @Req() request) {
-    return this.reportService.remove(+id);
+    return this.reportService.remove(+id, request.user.user_id);
   }
 }

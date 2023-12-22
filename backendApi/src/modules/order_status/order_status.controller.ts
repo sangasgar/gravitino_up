@@ -17,7 +17,7 @@ export class OrderStatusController {
   @ApiOperation({ summary: 'Создание статуса заказа' })
   @ApiResponse({ status: 201, description: 'Статус заказа успешно создан!' })
   create(@Body() createOrderStatusDto: CreateOrderStatusDto, @Req() request) {
-    return this.orderStatusService.create(createOrderStatusDto);
+    return this.orderStatusService.create(createOrderStatusDto, request.user.user_id);
   }
 
   @Get()
@@ -44,7 +44,7 @@ export class OrderStatusController {
   @ApiResponse({ status: 404, description: 'Статус не существует!' })
   @ApiResponse({ status: 403, description: 'Forbidden!' })
   update(@Body() updateOrderStatusDto: UpdateOrderStatusDto, @Req() request) {
-    return this.orderStatusService.update(updateOrderStatusDto);
+    return this.orderStatusService.update(updateOrderStatusDto, request.user.user_id);
   }
 
   @UseGuards(JwtAuthGuard)
@@ -53,6 +53,6 @@ export class OrderStatusController {
   @ApiResponse({ status: 201, description: 'Статус успешно удален!' })
   @ApiResponse({ status: 404, description: 'Статус не существует!' })
   remove(@Param('id') id: number, @Req() request) {
-    return this.orderStatusService.remove(+id);
+    return this.orderStatusService.remove(+id, request.user.user_id);
   }
 }

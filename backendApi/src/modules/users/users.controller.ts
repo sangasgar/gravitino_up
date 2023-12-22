@@ -65,7 +65,7 @@ export class UsersController {
     @ApiResponse({ status: 409, description: 'Пользователь с таким логином уже существует!' })
     @ApiResponse({ status: 403, description: 'Forbidden!' })
     update(@Body() user: UpdateUserDto, @Req() request) {
-        return this.usersService.update(user);
+        return this.usersService.update(user, request.user.user_id);
     }
 
     @UseGuards(JwtAuthGuard)
@@ -82,21 +82,6 @@ export class UsersController {
         type: User,
     })
     remove(@Param('id') id: number, @Req() request) {
-        return this.usersService.remove(+id);
+        return this.usersService.remove(+id, request.user.user_id);
     }
-
-    // @Get()
-    // @ApiResponse({
-    //     status: 200,
-    //     description: 'Успешный вход в аккаунт!',
-    //     type: User,
-    // })
-    // @ApiResponse({
-    //     status: 404,
-    //     description: 'Пользователь не найден!',
-    //     type: User,
-    // })
-    // logIn(@Query('login') login: string, @Query('password') password: string) {
-    //     return this.usersService.logIn(login, password);
-    // }
 }

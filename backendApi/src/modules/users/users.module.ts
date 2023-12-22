@@ -8,11 +8,12 @@ import { SequelizeModule } from '@nestjs/sequelize';
 import { Person } from 'src/modules/person/entities/person.entity';
 import { Group } from 'src/modules/group/entities/group.entity';
 import { TransactionHistory } from '../transaction_history/entities/transaction_history.entity';
+import { TransactionHistoryService } from '../transaction_history/transaction_history.service';
 
 @Module({
     imports: [SequelizeModule.forFeature([User, Role, Organization, Person, Group, TransactionHistory])],
     controllers: [UsersController],
-    providers: [UsersService],
+    providers: [UsersService, TransactionHistoryService],
     exports: [UsersService],
 })
 export class UsersModule { }

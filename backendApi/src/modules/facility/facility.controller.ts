@@ -14,7 +14,7 @@ export class FacilityController {
   @UseGuards(JwtAuthGuard)
   @Post()
   create(@Body() createFacilityDto: CreateFacilityDto, @Req() request) {
-    return this.facilityService.create(createFacilityDto);
+    return this.facilityService.create(createFacilityDto, request.user.user_id);
   }
 
   @UseGuards(JwtAuthGuard)
@@ -32,12 +32,12 @@ export class FacilityController {
   @UseGuards(JwtAuthGuard)
   @Patch(':id')
   update(@Body() updateFacilityDto: UpdateFacilityDto, @Req() request) {
-    return this.facilityService.update(updateFacilityDto);
+    return this.facilityService.update(updateFacilityDto, request.user.user_id);
   }
 
   @UseGuards(JwtAuthGuard)
   @Delete(':id')
   remove(@Param('id') id: number, @Req() request) {
-    return this.facilityService.remove(+id);
+    return this.facilityService.remove(+id, request.user.user_id);
   }
 }
