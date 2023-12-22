@@ -36,22 +36,6 @@ export class AuthService {
     return await this.authRepository.create(createAuthDto);
   }
 
-  // findAll() {
-  //     return `This action returns all auth`;
-  //   }
-
-  // findOne(id: number) {
-  //     return `This action returns a #${id} auth`;
-  //   }
-
-  // update(id: number, updateAuthDto: UpdateAuthDto) {
-  //     return `This action updates a #${id} auth`;
-  //   }
-
-  // remove(id: number) {
-  //     return `This action removes a #${id} auth`;
-  //   }
-
   async login(auth: AuthDto, values: { userAgent: string; ipAddress: string },) {
     const user = await this.usersService.findByLogin(auth.login);
 
@@ -85,7 +69,7 @@ export class AuthService {
           user_id: user.user_id,
           login: user.login,
         },
-        process.env.ACCESS_SECRET,
+        this.configService.get('access_secret'),
         {
           expiresIn: '1h',
         },
@@ -119,14 +103,14 @@ export class AuthService {
       login: user.login,
     };
 
-    return sign(accessToken, process.env.ACCESS_SECRET, { expiresIn: '1h' });
+    return sign(accessToken, this.configService.get('access_secret'), { expiresIn: '1h' });
   }
 
   private retrieveRefreshToken(
     refreshStr: string,
   ): Promise<Auth | undefined> {
     try {
-      const decoded = verify(refreshStr, this.configService.get(''));
+      const decoded = verify(refreshStr, this.configService.get('refresh_token'));
       if (typeof decoded === 'string') {
         return undefined;
       }
