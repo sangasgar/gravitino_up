@@ -5,6 +5,8 @@ import { OrderStatus } from './entities/order_status.entity';
 import { InjectModel } from '@nestjs/sequelize';
 import { TransactionHistoryService } from '../transaction_history/transaction_history.service';
 import { Sequelize } from 'sequelize-typescript';
+import { AppError } from 'src/common/constants/error';
+import { AppStrings } from 'src/common/constants/strings';
 
 @Injectable()
 export class OrderStatusService {
@@ -48,7 +50,7 @@ export class OrderStatusService {
       return Promise.reject(
         {
           statusCode: 404,
-          message: 'Статус заказа не найден!'
+          message: AppError.ORDER_STATUS_NOT_FOUND
         }
       )
     } else {
@@ -64,7 +66,7 @@ export class OrderStatusService {
       const foundStatus = await this.orderStatusRepository.findOne({ where: { status_id: updatedOrderStatus.status_id } });
 
       if (foundStatus == null) {
-        throw new HttpException('Статус заказа не найден!', HttpStatus.BAD_REQUEST);
+        throw new HttpException(AppError.ORDER_STATUS_NOT_FOUND, HttpStatus.BAD_REQUEST);
       }
 
       result = await foundStatus.update(updatedOrderStatus, transactionHost).catch((error) => {
@@ -87,15 +89,10 @@ export class OrderStatusService {
   async remove(status_id: number, user_id: number) {
     await this.sequelize.transaction(async trx => {
       const result = await this.orderStatusRepository.findOne({ where: { status_id } });
-
       if (result == null) {
-        return Promise.reject(
-          {
-            statusCode: 404,
-            message: 'Статус заказа не найден!'
-          }
-        )
+        throw new HttpException(AppError.ORDER_STATUS_NOT_FOUND, HttpStatus.NOT_FOUND)
       }
+
       await this.orderStatusRepository.destroy({ where: { status_id }, transaction: trx }).catch((error) => {
         let errorMessage = error.message;
         let errorCode = HttpStatus.BAD_REQUEST;
@@ -110,6 +107,6 @@ export class OrderStatusService {
       await this.historyService.create(historyDto);
     });
 
-    return { statusCode: 200, message: 'Строка успешно удалена!' };
+    return { statusCode: 200, message: AppStrings.SUCCESS_ROW_DELETE };
   }
 }

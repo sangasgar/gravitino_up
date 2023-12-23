@@ -18,8 +18,8 @@ export class RolePermission extends Model<RolePermission> {
     role: Role;
 
     @ForeignKey(type => Permission)
-    @Column({ type: DataType.INTEGER, allowNull: false, })
-    permission_id: number;
+    @Column({ type: DataType.STRING, allowNull: false, })
+    permission_id: string;
 
     @ApiProperty({ type: Permission, example: { permission_id: 1, action_name: 'users-create', entity_name: 'Users', }, description: 'Разрешение' })
     @BelongsTo(type => Permission)

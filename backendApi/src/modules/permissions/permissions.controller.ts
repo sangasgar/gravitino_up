@@ -3,7 +3,7 @@ import { PermissionsService } from './permissions.service';
 import { CreatePermissionDto } from './dto/create-permission.dto';
 import { UpdatePermissionDto } from './dto/update-permission.dto';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
-import { JwtAuthGuard } from '../guards/auth.guard';
+import { JwtAuthGuard } from '../auth/guards/auth.guard';
 
 @ApiBearerAuth()
 @ApiTags('Permissions')
@@ -23,8 +23,8 @@ export class PermissionsController {
   }
 
   @Get(':id')
-  findOne(@Param('id') id: number) {
-    return this.permissionsService.findOne(+id);
+  findOne(@Param('id') id: string) {
+    return this.permissionsService.findOne(id);
   }
 
   @UseGuards(JwtAuthGuard)
@@ -35,7 +35,7 @@ export class PermissionsController {
 
   @UseGuards(JwtAuthGuard)
   @Delete(':id')
-  remove(@Param('id') id: number, @Req() request) {
-    return this.permissionsService.remove(+id, request.user.user_id);
+  remove(@Param('id') id: string, @Req() request) {
+    return this.permissionsService.remove(id, request.user.user_id);
   }
 }

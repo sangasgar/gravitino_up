@@ -6,6 +6,8 @@ import { Facility } from './entities/facility.entity';
 import { Checkpoint } from 'src/modules/checkpoint/entities/checkpoint.entity';
 import { TransactionHistoryService } from '../transaction_history/transaction_history.service';
 import { Sequelize } from 'sequelize-typescript';
+import { AppError } from 'src/common/constants/error';
+import { AppStrings } from 'src/common/constants/strings';
 
 @Injectable()
 export class FacilityService {
@@ -25,7 +27,7 @@ export class FacilityService {
       const foundCheckpoint = await this.checkpointRepository.findOne({ where: { checkpoint_id: facility.checkpoint_id } });
 
       if (foundCheckpoint == null) {
-        throw new HttpException('Пункт пропуска не найден!', HttpStatus.BAD_REQUEST);
+        throw new HttpException(AppError.CHECKPOINT_NOT_FOUND, HttpStatus.BAD_REQUEST);
       }
 
       result = await this.facilityRepository.create(facility, transactionHost).catch((error) => {
@@ -56,7 +58,7 @@ export class FacilityService {
       return Promise.reject(
         {
           statusCode: 404,
-          message: 'Объект обслуживания не найден!'
+          message: AppError.FACILITY_NOT_FOUND
         }
       )
     } else {
@@ -73,14 +75,14 @@ export class FacilityService {
       const foundFacility = await this.facilityRepository.findOne({ where: { facility_id: updatedFacility.facility_id }, include: [Checkpoint], attributes: { exclude: ['organization_id'] } });
 
       if (foundFacility == null) {
-        throw new HttpException('Объект обслуживания не найден!', HttpStatus.BAD_REQUEST);
+        throw new HttpException(AppError.FACILITY_NOT_FOUND, HttpStatus.BAD_REQUEST);
       }
 
       if (updatedFacility.checkpoint_id != undefined) {
         const foundCheckpoint = await this.checkpointRepository.findOne({ where: { checkpoint_id: updatedFacility.checkpoint_id } });
 
         if (foundCheckpoint == null) {
-          throw new HttpException('Пункт пропуска не найден!', HttpStatus.BAD_REQUEST);
+          throw new HttpException(AppError.CHECKPOINT_NOT_FOUND, HttpStatus.BAD_REQUEST);
         }
       }
 
@@ -106,7 +108,7 @@ export class FacilityService {
       const foundObject = await this.facilityRepository.findOne({ where: { facility_id } });
 
       if (foundObject == null) {
-        throw new HttpException('Объект обслуживания не найден!', HttpStatus.BAD_REQUEST);
+        throw new HttpException(AppError.FACILITY_NOT_FOUND, HttpStatus.BAD_REQUEST);
       }
 
       await this.facilityRepository.destroy({ where: { facility_id }, transaction: trx }).catch((error) => {
@@ -123,6 +125,6 @@ export class FacilityService {
       await this.historyService.create(historyDto);
     });
 
-    return { statusCode: 200, message: 'Строка успешно удалена!' };
+    return { statusCode: 200, message: AppStrings.SUCCESS_ROW_DELETE };
   }
 }

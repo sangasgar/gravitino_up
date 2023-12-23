@@ -5,6 +5,8 @@ import { InjectModel } from '@nestjs/sequelize';
 import { Category } from './entities/category.entity';
 import { Sequelize } from 'sequelize-typescript';
 import { TransactionHistoryService } from '../transaction_history/transaction_history.service';
+import { AppError } from 'src/common/constants/error';
+import { AppStrings } from 'src/common/constants/strings';
 
 @Injectable()
 export class CategoryService {
@@ -44,7 +46,7 @@ export class CategoryService {
     const result = await this.categoryRepository.findOne({ where: { category_id } });
 
     if (result == null) {
-      throw new HttpException('Категория не найдена!', HttpStatus.BAD_REQUEST);
+      throw new HttpException(AppError.CATEGORY_NOT_FOUND, HttpStatus.BAD_REQUEST);
     } else {
       return result;
     }
@@ -60,7 +62,7 @@ export class CategoryService {
       const foundObject = await this.categoryRepository.findOne({ where: { category_id } });
 
       if (foundObject == null) {
-        throw new HttpException('Категория не найдена!', HttpStatus.NOT_FOUND);
+        throw new HttpException(AppError.CATEGORY_NOT_FOUND, HttpStatus.NOT_FOUND);
       }
 
       result = await foundObject.update(updatedCategory, transactionHost).catch((error) => {
@@ -86,7 +88,7 @@ export class CategoryService {
       const foundObject = await this.categoryRepository.findOne({ where: { category_id } });
 
       if (foundObject == null) {
-        throw new HttpException('Категория не найдена!', HttpStatus.NOT_FOUND);
+        throw new HttpException(AppError.CATEGORY_NOT_FOUND, HttpStatus.NOT_FOUND);
       }
 
       await this.categoryRepository.destroy({ where: { category_id }, transaction: trx }).catch((error) => {
@@ -103,6 +105,6 @@ export class CategoryService {
       await this.historyService.create(historyDto);
     });
 
-    return { statusCode: 200, message: 'Строка успешно удалена!' };
+    return { statusCode: 200, message: AppStrings.SUCCESS_ROW_DELETE };
   }
 }

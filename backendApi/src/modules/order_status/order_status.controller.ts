@@ -4,7 +4,7 @@ import { CreateOrderStatusDto } from './dto/create-order_status.dto';
 import { UpdateOrderStatusDto } from './dto/update-order_status.dto';
 import { ApiBearerAuth, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { OrderStatus } from './entities/order_status.entity';
-import { JwtAuthGuard } from 'src/modules/guards/auth.guard';
+import { JwtAuthGuard } from 'src/modules/auth/guards/auth.guard';
 
 @ApiBearerAuth()
 @ApiTags('order-status')

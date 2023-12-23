@@ -12,6 +12,8 @@ import { OrderStatus } from 'src/modules/order_status/entities/order_status.enti
 import { OrderPriority } from 'src/modules/priority/entities/priority.entity';
 import { Order } from './entities/order.entity';
 import { TransactionHistoryService } from '../transaction_history/transaction_history.service';
+import { AppError } from 'src/common/constants/error';
+import { AppStrings } from 'src/common/constants/strings';
 
 @Injectable()
 export class OrderService {
@@ -37,49 +39,49 @@ export class OrderService {
       const task = await this.taskRepository.findOne({ where: { task_id } })
 
       if (!task) {
-        throw new HttpException('Задача не найдена!', HttpStatus.BAD_REQUEST);
+        throw new HttpException(AppError.TASK_NOT_FOUND, HttpStatus.BAD_REQUEST);
       }
 
       const facility_id = createOrderDto.facility_id
       const facility = await this.facilityRepository.findOne({ where: { facility_id } })
 
       if (!facility) {
-        throw new HttpException('Объект обслуживания не найдена!', HttpStatus.BAD_REQUEST)
+        throw new HttpException(AppError.FACILITY_NOT_FOUND, HttpStatus.BAD_REQUEST)
       }
 
       const organization_id = createOrderDto.organization_id
       const organization = await this.organizationRepository.findOne({ where: { organization_id } })
 
       if (!organization) {
-        throw new HttpException('Организация не найдена!', HttpStatus.BAD_REQUEST);
+        throw new HttpException(AppError.ORGANIZATION_NOT_FOUND, HttpStatus.BAD_REQUEST);
       }
 
       const executor_id = createOrderDto.executor_id
       const executor = await this.userRepository.findOne({ where: { user_id: executor_id } })
 
       if (!executor) {
-        throw new HttpException('Пользователь (исполнитель) не найден!', HttpStatus.BAD_REQUEST);
+        throw new HttpException(AppError.USER_EXECUTOR_NOT_FOUND, HttpStatus.BAD_REQUEST);
       }
 
       const creator_id = createOrderDto.creator_id
       const creator = await this.userRepository.findOne({ where: { user_id: creator_id } })
 
       if (!creator) {
-        throw new HttpException('Пользователь (создатель) не найден!', HttpStatus.BAD_REQUEST);
+        throw new HttpException(AppError.USER_CREATOR_NOT_FOUND, HttpStatus.BAD_REQUEST);
       }
 
       const status_id = createOrderDto.status_id
       const status = await this.orderStatusRepository.findOne({ where: { status_id } })
 
       if (!status) {
-        throw new HttpException('Статус не найден!', HttpStatus.BAD_REQUEST);
+        throw new HttpException(AppError.ORDER_STATUS_NOT_FOUND, HttpStatus.BAD_REQUEST);
       }
 
       const priority_id = createOrderDto.priority_id
       const priority = await this.orderPriorityRepository.findOne({ where: { priority_id } })
 
       if (!priority) {
-        throw new HttpException('Приоритет не найден!', HttpStatus.BAD_REQUEST);
+        throw new HttpException(AppError.PRIORITY_NOT_FOUND, HttpStatus.BAD_REQUEST);
       }
 
       result = await this.orderRepository.create(createOrderDto, transactionHost).catch((error) => {
@@ -133,6 +135,10 @@ export class OrderService {
       },
     })
 
+    if (result == null) {
+      throw new HttpException(AppError.ORDER_NOT_FOUND, HttpStatus.NOT_FOUND)
+    }
+
     return result;
   }
 
@@ -144,7 +150,7 @@ export class OrderService {
 
       const order = await this.orderRepository.findOne({ where: { order_id: updateOrderDto.order_id } })
       if (!order) {
-        throw new HttpException('Заказ не найден!', HttpStatus.BAD_REQUEST);
+        throw new HttpException(AppError.ORDER_NOT_FOUND, HttpStatus.BAD_REQUEST);
       }
 
       if (updateOrderDto.task_id != undefined) {
@@ -152,7 +158,7 @@ export class OrderService {
         const task = await this.taskRepository.findOne({ where: { task_id } })
 
         if (!task) {
-          throw new HttpException('Задача не найдена!', HttpStatus.BAD_REQUEST);
+          throw new HttpException(AppError.TASK_NOT_FOUND, HttpStatus.BAD_REQUEST);
         }
       }
 
@@ -161,7 +167,7 @@ export class OrderService {
         const facility = await this.facilityRepository.findOne({ where: { facility_id } })
 
         if (!facility) {
-          throw new HttpException('Объект обслуживания не найдена!', HttpStatus.BAD_REQUEST)
+          throw new HttpException(AppError.FACILITY_NOT_FOUND, HttpStatus.BAD_REQUEST)
         }
       }
 
@@ -170,7 +176,7 @@ export class OrderService {
         const organization = await this.organizationRepository.findOne({ where: { organization_id } })
 
         if (!organization) {
-          throw new HttpException('Организация не найдена!', HttpStatus.BAD_REQUEST);
+          throw new HttpException(AppError.ORGANIZATION_NOT_FOUND, HttpStatus.BAD_REQUEST);
         }
       }
 
@@ -179,7 +185,7 @@ export class OrderService {
         const executor = await this.userRepository.findOne({ where: { user_id: executor_id } })
 
         if (!executor) {
-          throw new HttpException('Пользователь (исполнитель) не найден!', HttpStatus.BAD_REQUEST);
+          throw new HttpException(AppError.USER_EXECUTOR_NOT_FOUND, HttpStatus.BAD_REQUEST);
         }
       }
 
@@ -188,7 +194,7 @@ export class OrderService {
         const creator = await this.userRepository.findOne({ where: { user_id: creator_id } })
 
         if (!creator) {
-          throw new HttpException('Пользователь (создатель) не найден!', HttpStatus.BAD_REQUEST);
+          throw new HttpException(AppError.USER_CREATOR_NOT_FOUND, HttpStatus.BAD_REQUEST);
         }
       }
 
@@ -197,7 +203,7 @@ export class OrderService {
         const status = await this.orderStatusRepository.findOne({ where: { status_id } })
 
         if (!status) {
-          throw new HttpException('Статус не найден!', HttpStatus.BAD_REQUEST);
+          throw new HttpException(AppError.ORDER_STATUS_NOT_FOUND, HttpStatus.BAD_REQUEST);
         }
       }
 
@@ -206,7 +212,7 @@ export class OrderService {
         const priority = await this.orderPriorityRepository.findOne({ where: { priority_id } })
 
         if (!priority) {
-          throw new HttpException('Приоритет не найден!', HttpStatus.BAD_REQUEST);
+          throw new HttpException(AppError.PRIORITY_NOT_FOUND, HttpStatus.BAD_REQUEST);
         }
       }
 
@@ -232,7 +238,7 @@ export class OrderService {
       const result = await this.orderRepository.findOne({ where: { order_id: id } });
 
       if (!result) {
-        throw new HttpException('Заказ не найден!', HttpStatus.BAD_REQUEST)
+        throw new HttpException(AppError.ORDER_NOT_FOUND, HttpStatus.BAD_REQUEST)
       }
 
       await this.orderRepository.destroy({ where: { order_id: id }, transaction: trx }).catch((error) => {
@@ -249,6 +255,6 @@ export class OrderService {
       await this.historyService.create(historyDto);
     })
 
-    return { statusCode: 200, message: 'Строка успешно удалена!' };
+    return { statusCode: 200, message: AppStrings.SUCCESS_ROW_DELETE };
   }
 }

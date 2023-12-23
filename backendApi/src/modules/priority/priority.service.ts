@@ -6,6 +6,8 @@ import { OrderPriority } from './entities/priority.entity';
 import { User } from 'src/modules/users/entities/user.entity';
 import { TransactionHistoryService } from '../transaction_history/transaction_history.service';
 import { Sequelize } from 'sequelize-typescript';
+import { AppError } from 'src/common/constants/error';
+import { AppStrings } from 'src/common/constants/strings';
 
 @Injectable()
 export class PriorityService {
@@ -58,7 +60,7 @@ export class PriorityService {
 
       const orderPriority = await this.orderPriorityRepository.findOne({ where: { priority_id: updatePriorityDto.priority_id } })
       if (!orderPriority) {
-        throw new HttpException('Приоритет не найден', HttpStatus.NOT_FOUND);
+        throw new HttpException(AppError.PRIORITY_NOT_FOUND, HttpStatus.NOT_FOUND);
       }
 
       result = await orderPriority.update(updatePriorityDto, transactionHost).catch((error) => {
@@ -82,7 +84,7 @@ export class PriorityService {
     await this.sequelize.transaction(async trx => {
       const orderPriority = await this.orderPriorityRepository.findOne({ where: { priority_id: id } })
       if (!orderPriority) {
-        throw new HttpException('Приоритет не найден', HttpStatus.NOT_FOUND);
+        throw new HttpException(AppError.PRIORITY_NOT_FOUND, HttpStatus.NOT_FOUND);
       }
 
       await this.orderPriorityRepository.destroy({ where: { priority_id: id }, transaction: trx }).catch((error) => {
@@ -99,6 +101,6 @@ export class PriorityService {
       await this.historyService.create(historyDto);
     })
 
-    return { statusCode: 200, message: 'Строка успешно удалена!' };
+    return { statusCode: 200, message: AppStrings.SUCCESS_ROW_DELETE };
   }
 }

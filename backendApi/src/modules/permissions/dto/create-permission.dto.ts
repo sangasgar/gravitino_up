@@ -4,7 +4,7 @@ import { IsString } from "class-validator";
 export class CreatePermissionDto {
     @IsString()
     @ApiProperty()
-    action_name: string;
+    permission_id: string;
 
     @IsString()
     @ApiProperty()

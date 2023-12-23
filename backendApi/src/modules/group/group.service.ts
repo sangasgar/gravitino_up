@@ -5,6 +5,8 @@ import { InjectModel } from '@nestjs/sequelize';
 import { Group } from './entities/group.entity';
 import { Sequelize } from 'sequelize-typescript';
 import { TransactionHistoryService } from '../transaction_history/transaction_history.service';
+import { AppError } from 'src/common/constants/error';
+import { AppStrings } from 'src/common/constants/strings';
 
 @Injectable()
 export class GroupService {
@@ -45,7 +47,7 @@ export class GroupService {
     const result = await this.groupRepository.findOne({ where: { group_id } });
 
     if (result == null) {
-      throw new HttpException('Группа не найдена!', HttpStatus.NOT_FOUND)
+      throw new HttpException(AppError.GROUP_NOT_FOUND, HttpStatus.NOT_FOUND)
     } else {
       return result;
     }
@@ -61,7 +63,7 @@ export class GroupService {
       const foundObject = await this.groupRepository.findOne({ where: { group_id } });
 
       if (foundObject == null) {
-        throw new HttpException('Группа не найдена!', HttpStatus.NOT_FOUND)
+        throw new HttpException(AppError.GROUP_NOT_FOUND, HttpStatus.NOT_FOUND)
       }
 
       result = await foundObject.update(updatedGroup, transactionHost).catch((error) => {
@@ -86,7 +88,7 @@ export class GroupService {
       const result = await this.groupRepository.findOne({ where: { group_id } });
 
       if (result == null) {
-        throw new HttpException('Группа не найдена!', HttpStatus.BAD_REQUEST)
+        throw new HttpException(AppError.GROUP_NOT_FOUND, HttpStatus.BAD_REQUEST)
       }
 
       await this.groupRepository.destroy({ where: { group_id }, transaction: trx }).catch((error) => {
@@ -103,6 +105,6 @@ export class GroupService {
       await this.historyService.create(historyDto);
     })
 
-    return { statusCode: 200, message: 'Строка успешно удалена!' };
+    return { statusCode: 200, message: AppStrings.SUCCESS_ROW_DELETE };
   }
 }

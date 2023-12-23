@@ -7,6 +7,8 @@ import { InjectModel } from '@nestjs/sequelize';
 import { RolesPermissionsService } from '../roles_permissions/roles_permissions.service';
 import { ConfigService } from '@nestjs/config';
 import { TransactionHistoryService } from '../transaction_history/transaction_history.service';
+import { AppError } from 'src/common/constants/error';
+import { AppStrings } from 'src/common/constants/strings';
 
 @Injectable()
 export class PermissionsService {
@@ -23,18 +25,6 @@ export class PermissionsService {
 
     await this.sequelize.transaction(async trx => {
       const transactionHost = { transaction: trx };
-
-      const permissionName = this.configService.get('rp_permission_create');
-      const rights = await this.rpService.checkPermission(permissionName, user_id);
-      if (!rights) {
-        const historyDto = {
-          "user_id": user_id,
-          "comment": `${permissionName}: Отказано в доступе пользователю #${user_id}`,
-        }
-        await this.historyService.create(historyDto);
-
-        throw new HttpException('Отказано в доступе', HttpStatus.FORBIDDEN);
-      }
 
       result = await this.permissionRepository.create(permission, transactionHost).catch((error) => {
         let errorMessage = error.message;
@@ -59,14 +49,14 @@ export class PermissionsService {
     return result;
   }
 
-  async findOne(id: number) {
+  async findOne(id: string) {
     const result = await this.permissionRepository.findOne({ where: { permission_id: id } });
 
     if (result == null) {
       return Promise.reject(
         {
-          statusCode: 404,
-          message: 'Разрешение не найдено!'
+          statusCode: HttpStatus.NOT_FOUND,
+          message: AppError.PERMISSION_NOT_FOUND
         }
       )
     } else {
@@ -80,22 +70,10 @@ export class PermissionsService {
     await this.sequelize.transaction(async trx => {
       const transactionHost = { transaction: trx };
 
-      const permissionName = this.configService.get('rp_permission_update');
-      const rights = await this.rpService.checkPermission(permissionName, user_id);
-      if (!rights) {
-        const historyDto = {
-          "user_id": user_id,
-          "comment": `${permissionName}: Отказано в доступе пользователю #${user_id}`,
-        }
-        await this.historyService.create(historyDto);
-
-        throw new HttpException('Отказано в доступе', HttpStatus.FORBIDDEN);
-      }
-
       const permission = await this.permissionRepository.findOne({ where: { permission_id: updatedPermission.permission_id } });
 
       if (!permission) {
-        throw new HttpException('Разрешение не найдено!', HttpStatus.BAD_REQUEST);
+        throw new HttpException(AppError.PERMISSION_NOT_FOUND, HttpStatus.NOT_FOUND);
       }
 
       result = await permission.update(updatedPermission, transactionHost).catch((error) => {
@@ -116,24 +94,12 @@ export class PermissionsService {
     return result;
   }
 
-  async remove(id: number, user_id: number) {
+  async remove(id: string, user_id: number) {
     await this.sequelize.transaction(async trx => {
-      const permissionName = this.configService.get('rp_permission_delete');
-      const rights = await this.rpService.checkPermission(permissionName, user_id);
-      if (!rights) {
-        const historyDto = {
-          "user_id": user_id,
-          "comment": `${permissionName}: Отказано в доступе пользователю #${user_id}`,
-        }
-        await this.historyService.create(historyDto);
-
-        throw new HttpException('Отказано в доступе', HttpStatus.FORBIDDEN);
-      }
-
       const permission = await this.permissionRepository.findOne({ where: { permission_id: id } });
 
       if (!permission) {
-        throw new HttpException('Разрешение не найдено!', HttpStatus.BAD_REQUEST);
+        throw new HttpException(AppError.PERMISSION_NOT_FOUND, HttpStatus.NOT_FOUND);
       }
 
       await this.permissionRepository.destroy({ where: { permission_id: id }, transaction: trx }).catch((error) => {
@@ -150,6 +116,6 @@ export class PermissionsService {
       await this.historyService.create(historyDto);
     });
 
-    return { statusCode: 200, message: 'Строка успешно удалена!' };
+    return { statusCode: 200, message: AppStrings.SUCCESS_ROW_DELETE };
   }
 }

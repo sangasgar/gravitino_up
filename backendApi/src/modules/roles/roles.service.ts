@@ -5,6 +5,8 @@ import { Role } from './entities/role.entity';
 import { InjectModel } from '@nestjs/sequelize';
 import { TransactionHistoryService } from '../transaction_history/transaction_history.service';
 import { Sequelize } from 'sequelize-typescript';
+import { AppError } from 'src/common/constants/error';
+import { AppStrings } from 'src/common/constants/strings';
 
 @Injectable()
 export class RolesService {
@@ -45,7 +47,7 @@ export class RolesService {
     const result = await this.roleRepository.findOne({ where: { role_id } });
 
     if (result == null) {
-      throw new HttpException('Роль не найдена!', HttpStatus.NOT_FOUND);
+      throw new HttpException(AppError.ROLE_NOT_FOUND, HttpStatus.NOT_FOUND);
     } else {
       return result;
     }
@@ -61,7 +63,7 @@ export class RolesService {
       const foundRole = await this.roleRepository.findOne({ where: { role_id } });
 
       if (!foundRole) {
-        throw new HttpException('Роль не найдена!', HttpStatus.NOT_FOUND);
+        throw new HttpException(AppError.ROLE_NOT_FOUND, HttpStatus.NOT_FOUND);
       }
 
       result = await foundRole.update(updatedRole, transactionHost).catch((error) => {
@@ -86,7 +88,7 @@ export class RolesService {
       const result = await this.roleRepository.findOne({ where: { role_id } });
 
       if (!result) {
-        throw new HttpException('Роль не найдена!', HttpStatus.NOT_FOUND);
+        throw new HttpException(AppError.ROLE_NOT_FOUND, HttpStatus.NOT_FOUND);
       }
 
       await this.roleRepository.destroy({ where: { role_id }, transaction: trx }).catch((error) => {
@@ -103,6 +105,6 @@ export class RolesService {
       await this.historyService.create(historyDto);
     })
 
-    return { statusCode: 200, message: 'Строка успешно удалена!' };
+    return { statusCode: 200, message: AppStrings.SUCCESS_ROW_DELETE };
   }
 }

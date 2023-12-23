@@ -1,4 +1,3 @@
-import { ConfigService } from '@nestjs/config';
 import { PassportStrategy } from '@nestjs/passport';
 import { ExtractJwt, Strategy } from 'passport-jwt';
 
@@ -13,8 +12,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
 
     validate(payload) {
         return {
-            user_id: payload.user_id,
-            login: payload.login
+            ...payload
         };
     }
 }

@@ -7,6 +7,8 @@ import { Organization } from 'src/modules/organization/entities/organization.ent
 import { OrganizationType } from 'src/modules/organization_type/entities/organization_type.entity';
 import { Sequelize } from 'sequelize-typescript';
 import { TransactionHistoryService } from '../transaction_history/transaction_history.service';
+import { AppError } from 'src/common/constants/error';
+import { AppStrings } from 'src/common/constants/strings';
 
 @Injectable()
 export class CheckpointService {
@@ -27,7 +29,7 @@ export class CheckpointService {
       const foundOrganization = await this.organizationRepository.findOne({ where: { organization_id } });
 
       if (foundOrganization == null) {
-        throw new HttpException('Организация не найдена!', HttpStatus.NOT_FOUND)
+        throw new HttpException(AppError.ORGANIZATION_NOT_FOUND, HttpStatus.NOT_FOUND)
       }
 
       result = await this.checkpointRepository.create(checkpoint, transactionHost).catch((error) => {
@@ -55,7 +57,7 @@ export class CheckpointService {
     const result = await this.checkpointRepository.findOne({ where: { checkpoint_id }, include: [Organization], attributes: { exclude: ['organization_id'] } });
 
     if (result == null) {
-      throw new HttpException('Пункт пропуска не найден!', HttpStatus.NOT_FOUND)
+      throw new HttpException(AppError.CHECKPOINT_NOT_FOUND, HttpStatus.NOT_FOUND)
     } else {
       return result;
     }
@@ -71,7 +73,7 @@ export class CheckpointService {
       const foundCheckpoint = await this.checkpointRepository.findOne({ where: { checkpoint_id }, include: [Organization], attributes: { exclude: ['organization_id'] } });
 
       if (!foundCheckpoint) {
-        throw new HttpException('Пункт пропуска не найден!', HttpStatus.NOT_FOUND)
+        throw new HttpException(AppError.CHECKPOINT_NOT_FOUND, HttpStatus.NOT_FOUND)
       }
 
       var foundOrganization;
@@ -80,7 +82,7 @@ export class CheckpointService {
         foundOrganization = await this.organizationRepository.findOne({ where: { organization_id } });
 
         if (!foundOrganization) {
-          throw new HttpException('Организация не найдена!', HttpStatus.BAD_REQUEST)
+          throw new HttpException(AppError.ORGANIZATION_NOT_FOUND, HttpStatus.BAD_REQUEST)
         }
       }
 
@@ -108,7 +110,7 @@ export class CheckpointService {
       const foundObject = await this.checkpointRepository.findOne({ where: { checkpoint_id } });
 
       if (foundObject == null) {
-        throw new HttpException('Пункт пропуска не найден!', HttpStatus.NOT_FOUND)
+        throw new HttpException(AppError.CHECKPOINT_NOT_FOUND, HttpStatus.NOT_FOUND)
       }
 
       await this.checkpointRepository.destroy({ where: { checkpoint_id }, transaction: trx }).catch((error) => {
@@ -125,6 +127,6 @@ export class CheckpointService {
       await this.historyService.create(historyDto);
     })
 
-    return { statusCode: 200, message: 'Строка успешно удалена!' };
+    return { statusCode: 200, message: AppStrings.SUCCESS_ROW_DELETE };
   }
 }

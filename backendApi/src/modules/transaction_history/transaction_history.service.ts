@@ -4,6 +4,8 @@ import { UpdateTransactionHistoryDto } from './dto/update-transaction_history.dt
 import { InjectModel } from '@nestjs/sequelize';
 import { User } from 'src/modules/users/entities/user.entity';
 import { TransactionHistory } from './entities/transaction_history.entity';
+import { AppError } from 'src/common/constants/error';
+import { AppStrings } from 'src/common/constants/strings';
 
 @Injectable()
 export class TransactionHistoryService {
@@ -15,7 +17,7 @@ export class TransactionHistoryService {
   async create(createTransactionHistoryDto: CreateTransactionHistoryDto) {
     const user = await this.userRepository.findOne({ where: { user_id: createTransactionHistoryDto.user_id } });
     if (!user) {
-      throw new HttpException('Пользователь не найден!', HttpStatus.BAD_REQUEST);
+      throw new HttpException(AppError.USER_NOT_FOUND, HttpStatus.BAD_REQUEST);
     }
 
     const result = await this.historyRepository.create(createTransactionHistoryDto).catch((error) => {
@@ -42,8 +44,8 @@ export class TransactionHistoryService {
     if (result == null) {
       return Promise.reject(
         {
-          statusCode: 404,
-          message: 'Запись не найдена!'
+          statusCode: HttpStatus.NOT_FOUND,
+          message: AppError.TRANSACTION_HISTORY_NOT_FOUND
         }
       )
     } else {
@@ -54,12 +56,12 @@ export class TransactionHistoryService {
   async update(updateTransactionHistoryDto: UpdateTransactionHistoryDto) {
     const history = await this.historyRepository.findOne({ where: { user_id: updateTransactionHistoryDto.history_id } });
     if (!history) {
-      throw new HttpException('Запись не найдена!', HttpStatus.BAD_REQUEST);
+      throw new HttpException(AppError.TRANSACTION_HISTORY_NOT_FOUND, HttpStatus.NOT_FOUND);
     }
 
     const user = await this.userRepository.findOne({ where: { user_id: updateTransactionHistoryDto.user_id } });
     if (!user) {
-      throw new HttpException('Пользователь не найден!', HttpStatus.BAD_REQUEST);
+      throw new HttpException(AppError.USER_NOT_FOUND, HttpStatus.BAD_REQUEST);
     }
 
     const result = await history.update(updateTransactionHistoryDto).catch((error) => {
@@ -80,14 +82,14 @@ export class TransactionHistoryService {
     if (result == null) {
       return Promise.reject(
         {
-          statusCode: 404,
-          message: 'Запись не найдена!'
+          statusCode: HttpStatus.NOT_FOUND,
+          message: AppError.TRANSACTION_HISTORY_NOT_FOUND
         }
       )
     } else {
       await this.historyRepository.destroy({ where: { history_id: id } });
 
-      return { statusCode: 200, message: 'Строка успешно удалена!' };
+      return { statusCode: 200, message: AppStrings.SUCCESS_ROW_DELETE };
     }
   }
 }

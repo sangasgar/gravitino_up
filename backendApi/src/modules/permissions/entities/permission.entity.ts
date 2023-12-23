@@ -5,13 +5,12 @@ import { RolePermission } from "src/modules/roles_permissions/entities/roles_per
 
 @Table
 export class Permission extends Model<Permission> {
+    // @Column({ type: DataType.INTEGER, allowNull: false, autoIncrement: true, })
+    // permission_id: number;
     @PrimaryKey
-    @Column({ type: DataType.INTEGER, allowNull: false, autoIncrement: true, })
-    permission_id: number;
-
-    @ApiProperty({ example: '', description: 'Действие' })
-    @Column({ type: DataType.STRING(30), allowNull: false, unique: true })
-    action_name: string;
+    @ApiProperty({ example: 'user-create', description: 'Действие' })
+    @Column({ type: DataType.STRING, allowNull: false, unique: true })
+    permission_id: string;
 
     @ApiProperty({ example: 'Organizations', description: 'Название таблицы' })
     @Column({ type: DataType.STRING(30), allowNull: false, })

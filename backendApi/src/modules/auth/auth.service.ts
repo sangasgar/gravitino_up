@@ -10,6 +10,7 @@ import { STATUS_CODES } from 'http';
 import { Auth } from './entities/auth.entity';
 import { sign, verify } from 'jsonwebtoken';
 import { ConfigService } from '@nestjs/config';
+import { AppError } from 'src/common/constants/error';
 
 @Injectable()
 export class AuthService {
@@ -28,7 +29,7 @@ export class AuthService {
       return Promise.reject(
         {
           statusCode: HttpStatus.NOT_FOUND,
-          message: 'Пользователь не найден!'
+          message: AppError.USER_NOT_FOUND
         }
       );
     }
@@ -37,26 +38,27 @@ export class AuthService {
   }
 
   async login(auth: AuthDto, values: { userAgent: string; ipAddress: string },) {
-    const user = await this.usersService.findByLogin(auth.login);
+    const loginData = await this.usersService.findByLogin(auth.login);
 
-    if (await bcrypt.compare(auth.password, user.password)) {
-      return this.newRefreshAndAccessToken(user, values);
+    if (await bcrypt.compare(auth.password, loginData.password)) {
+      delete loginData['password'];
+      return this.newRefreshAndAccessToken(loginData, values);
     } else {
       return Promise.reject(
         {
           statusCode: HttpStatus.FORBIDDEN,
-          message: 'Данные не совпадают!'
+          message: AppError.WRONG_CREDENTIALS,
         }
       )
     }
   }
 
   private async newRefreshAndAccessToken(
-    user: User,
+    loginData: any,
     values: { userAgent: string; ipAddress: string },
   ): Promise<{ accessToken: string; refreshToken: string }> {
     const authObject = new CreateAuthDto();
-    authObject.user_id = user.user_id;
+    authObject.user_id = loginData.user_id;
     authObject.user_agent = values.userAgent;
     authObject.ip_address = values.ipAddress;
 
@@ -66,8 +68,7 @@ export class AuthService {
       refreshToken: auth.sign(),
       accessToken: sign(
         {
-          user_id: user.user_id,
-          login: user.login,
+          ...loginData,
         },
         this.configService.get('access_secret'),
         {
@@ -83,24 +84,26 @@ export class AuthService {
       return Promise.reject(
         {
           statusCode: HttpStatus.FORBIDDEN,
-          message: 'Неправильный токен!'
+          message: AppError.INVALID_JWT,
         }
       )
     }
 
     const user = await this.usersService.findById(refreshToken.user_id);
+
     if (!user) {
       return Promise.reject(
         {
           statusCode: HttpStatus.NOT_FOUND,
-          message: 'Пользователь не найден!'
+          message: AppError.USER_NOT_FOUND
         }
       )
     }
 
+    const loginData = await this.usersService.findByLogin(user.login);
+
     const accessToken = {
-      user_id: user.user_id,
-      login: user.login,
+      ...loginData,
     };
 
     return sign(accessToken, this.configService.get('access_secret'), { expiresIn: '1h' });
@@ -143,7 +146,7 @@ export class AuthService {
       return Promise.reject(
         {
           statusCode: HttpStatus.NOT_FOUND,
-          message: 'Токен не найден!'
+          message: AppError.INVALID_JWT
         }
       )
     }

@@ -5,6 +5,8 @@ import { FileType } from './entities/file_type.entity';
 import { InjectModel } from '@nestjs/sequelize';
 import { TransactionHistoryService } from '../transaction_history/transaction_history.service';
 import { Sequelize } from 'sequelize-typescript';
+import { AppError } from 'src/common/constants/error';
+import { AppStrings } from 'src/common/constants/strings';
 
 @Injectable()
 export class FileTypeService {
@@ -48,7 +50,7 @@ export class FileTypeService {
       return Promise.reject(
         {
           statusCode: 404,
-          message: 'Тип файла не найден!'
+          message: AppError.FILE_TYPE_NOT_FOUND
         }
       )
     } else {
@@ -65,7 +67,7 @@ export class FileTypeService {
       const foundFileType = await this.fileTypeRepository.findOne({ where: { file_type_id: updatedFile.file_type_id } });
 
       if (foundFileType == null) {
-        throw new HttpException('Тип файла не найден!', HttpStatus.BAD_REQUEST);
+        throw new HttpException(AppError.FILE_TYPE_NOT_FOUND, HttpStatus.BAD_REQUEST);
       }
 
       result = await foundFileType.update(updatedFile, transactionHost).catch((error) => {
@@ -90,7 +92,7 @@ export class FileTypeService {
       const result = await this.fileTypeRepository.findOne({ where: { file_type_id } });
 
       if (result == null) {
-        throw new HttpException('Тип файла не найден!', HttpStatus.BAD_REQUEST);
+        throw new HttpException(AppError.FILE_TYPE_NOT_FOUND, HttpStatus.BAD_REQUEST);
       }
 
       await this.fileTypeRepository.destroy({ where: { file_type_id }, transaction: trx }).catch((error) => {
@@ -107,6 +109,6 @@ export class FileTypeService {
       await this.historyService.create(historyDto);
     });
 
-    return { statusCode: 200, message: 'Строка успешно удалена!' };
+    return { statusCode: 200, message: AppStrings.SUCCESS_ROW_DELETE };
   }
 }

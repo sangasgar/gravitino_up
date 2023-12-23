@@ -10,6 +10,8 @@ import { Sequelize } from 'sequelize-typescript';
 import { RolePermission } from './entities/roles_permission.entity';
 import { where } from 'sequelize';
 import { ConfigService } from '@nestjs/config';
+import { AppError } from 'src/common/constants/error';
+import { AppStrings } from 'src/common/constants/strings';
 
 @Injectable()
 export class RolesPermissionsService {
@@ -29,32 +31,20 @@ export class RolesPermissionsService {
     await this.sequelize.transaction(async trx => {
       const transactionHost = { transaction: trx };
 
-      const permissionName = this.configService.get('rp_role_permission_create');
-      const rights = await this.checkPermission(permissionName, user_id);
-      if (!rights) {
-        const historyDto = {
-          "user_id": user_id,
-          "comment": `${permissionName}: Отказано в доступе пользователю #${user_id}`,
-        }
-        await this.historyService.create(historyDto);
-
-        throw new HttpException('Отказано в доступе', HttpStatus.FORBIDDEN);
-      }
-
       const user = await this.userRepository.findOne({ where: { user_id: user_id } });
 
       if (!user) {
-        throw new HttpException('Пользователь не найден!', HttpStatus.BAD_REQUEST);
+        throw new HttpException(AppError.USER_NOT_FOUND, HttpStatus.BAD_REQUEST);
       }
 
       const permission = await this.permissionRepository.findOne({ where: { permission_id: rolePermission.permission_id } });
       if (!permission) {
-        throw new HttpException('Разрешение не найдено!', HttpStatus.BAD_REQUEST);
+        throw new HttpException(AppError.PERMISSION_NOT_FOUND, HttpStatus.BAD_REQUEST);
       }
 
       const role = await this.roleRepository.findOne({ where: { role_id: rolePermission.role_id } });
       if (!role) {
-        throw new HttpException('Роль не найдена!', HttpStatus.BAD_REQUEST);
+        throw new HttpException(AppError.ROLE_NOT_FOUND, HttpStatus.BAD_REQUEST);
       }
 
       result = await this.rolePermissionRepository.create(rolePermission, transactionHost).catch((error) => {
@@ -86,8 +76,8 @@ export class RolesPermissionsService {
     if (result == null) {
       return Promise.reject(
         {
-          statusCode: 404,
-          message: 'Запись не найдена!'
+          statusCode: HttpStatus.NOT_FOUND,
+          message: AppError.ROLE_PERMISSION_NOT_FOUND
         }
       )
     } else {
@@ -101,39 +91,27 @@ export class RolesPermissionsService {
     await this.sequelize.transaction(async trx => {
       const transactionHost = { transaction: trx };
 
-      const permissionName = this.configService.get('rp_role_permission_update');
-      const rights = await this.checkPermission(permissionName, user_id);
-      if (!rights) {
-        const historyDto = {
-          "user_id": user_id,
-          "comment": `${permissionName}: Отказано в доступе пользователю #${user_id}`,
-        }
-        await this.historyService.create(historyDto);
-
-        throw new HttpException('Отказано в доступе', HttpStatus.FORBIDDEN);
+      const rolePermission = await this.rolePermissionRepository.findOne({ where: { role_permission_id: updatedRolePermission.role_permission_id } });
+      if (!rolePermission) {
+        throw new HttpException(AppError.ROLE_PERMISSION_NOT_FOUND, HttpStatus.NOT_FOUND);
       }
 
       const user = await this.userRepository.findOne({ where: { user_id: user_id } });
       if (!user) {
-        throw new HttpException('Пользователь не найден!', HttpStatus.BAD_REQUEST);
-      }
-
-      const rolePermission = await this.rolePermissionRepository.findOne({ where: { role_permission_id: updatedRolePermission.role_permission_id } });
-      if (!rolePermission) {
-        throw new HttpException('Разрешение не найдено!', HttpStatus.BAD_REQUEST);
+        throw new HttpException(AppError.USER_NOT_FOUND, HttpStatus.BAD_REQUEST);
       }
 
       if (updatedRolePermission.permission_id != undefined) {
         const permission = await this.permissionRepository.findOne({ where: { permission_id: updatedRolePermission.permission_id } });
         if (!permission) {
-          throw new HttpException('Разрешение не найдено!', HttpStatus.BAD_REQUEST);
+          throw new HttpException(AppError.PERMISSION_NOT_FOUND, HttpStatus.BAD_REQUEST);
         }
       }
 
       if (updatedRolePermission.role_id != undefined) {
         const role = await this.roleRepository.findOne({ where: { role_id: updatedRolePermission.role_id } });
         if (!role) {
-          throw new HttpException('Роль не найдена!', HttpStatus.BAD_REQUEST);
+          throw new HttpException(AppError.ROLE_NOT_FOUND, HttpStatus.BAD_REQUEST);
         }
       }
 
@@ -156,22 +134,10 @@ export class RolesPermissionsService {
 
   async remove(id: number, user_id: number) {
     await this.sequelize.transaction(async trx => {
-      const permissionName = this.configService.get('rp_role_permission_delete');
-      const rights = await this.checkPermission(permissionName, user_id);
-      if (!rights) {
-        const historyDto = {
-          "user_id": user_id,
-          "comment": `${permissionName}: Отказано в доступе пользователю #${user_id}`,
-        }
-        await this.historyService.create(historyDto);
-
-        throw new HttpException('Отказано в доступе', HttpStatus.FORBIDDEN);
-      }
-
       const rolePermission = await this.rolePermissionRepository.findOne({ where: { role_permission_id: id } });
 
       if (!rolePermission) {
-        throw new HttpException('Запись не найдена!', HttpStatus.BAD_REQUEST);
+        throw new HttpException(AppError.ROLE_PERMISSION_NOT_FOUND, HttpStatus.NOT_FOUND);
       }
 
       await this.rolePermissionRepository.destroy({ where: { role_permission_id: id }, transaction: trx }).catch((error) => {
@@ -188,7 +154,7 @@ export class RolesPermissionsService {
       await this.historyService.create(historyDto);
     });
 
-    return { statusCode: 200, message: 'Строка успешно удалена!' };
+    return { statusCode: 200, message: AppStrings.SUCCESS_ROW_DELETE };
   }
 
   async checkPermission(action: string, user_id: number): Promise<boolean> {
@@ -197,7 +163,7 @@ export class RolesPermissionsService {
       return false;
     }
 
-    const permission = (await this.permissionRepository.findOne({ where: { action_name: action } }));
+    const permission = (await this.permissionRepository.findOne({ where: { permission_id: action } }));
     if (!permission) {
       return false;
     }

@@ -5,6 +5,8 @@ import { InjectModel } from '@nestjs/sequelize';
 import { OrganizationType } from './entities/organization_type.entity';
 import { TransactionHistoryService } from '../transaction_history/transaction_history.service';
 import { Sequelize } from 'sequelize-typescript';
+import { AppError } from 'src/common/constants/error';
+import { AppStrings } from 'src/common/constants/strings';
 
 @Injectable()
 export class OrganizationTypeService {
@@ -47,8 +49,8 @@ export class OrganizationTypeService {
     if (result == null) {
       return Promise.reject(
         {
-          statusCode: 404,
-          message: 'Тип не найден!'
+          statusCode: HttpStatus.NOT_FOUND,
+          message: AppError.ORGANIZATION_TYPE_NOT_FOUND
         }
       )
     } else {
@@ -65,7 +67,7 @@ export class OrganizationTypeService {
       const organization_type = await this.organizationTypeRepository.findOne({ where: { organization_type_id: updatedOrganizationType.organization_type_id } });
 
       if (!organization_type) {
-        throw new HttpException('Тип не найден!', HttpStatus.NOT_FOUND);
+        throw new HttpException(AppError.ORGANIZATION_TYPE_NOT_FOUND, HttpStatus.NOT_FOUND);
       }
 
       result = await organization_type.update(updatedOrganizationType, transactionHost).catch((error) => {
@@ -90,7 +92,7 @@ export class OrganizationTypeService {
       const result = await this.organizationTypeRepository.findOne({ where: { organization_type_id } });
 
       if (result == null) {
-        throw new HttpException('Тип не найден!', HttpStatus.NOT_FOUND);
+        throw new HttpException(AppError.ORGANIZATION_TYPE_NOT_FOUND, HttpStatus.NOT_FOUND);
       }
 
       await this.organizationTypeRepository.destroy({ where: { organization_type_id }, transaction: trx }).catch((error) => {
@@ -106,6 +108,6 @@ export class OrganizationTypeService {
       }
       await this.historyService.create(historyDto);;
     });
-    return { statusCode: 200, message: 'Строка успешно удалена!' };
+    return { statusCode: 200, message: AppStrings.SUCCESS_ROW_DELETE };
   }
 }

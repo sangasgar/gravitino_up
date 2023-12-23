@@ -4,7 +4,7 @@ import { CreateFileTypeDto } from './dto/create-file_type.dto';
 import { UpdateFileTypeDto } from './dto/update-file_type.dto';
 import { ApiBearerAuth, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { FileType } from './entities/file_type.entity';
-import { JwtAuthGuard } from 'src/modules/guards/auth.guard';
+import { JwtAuthGuard } from 'src/modules/auth/guards/auth.guard';
 
 @ApiBearerAuth()
 @ApiTags('file-type')

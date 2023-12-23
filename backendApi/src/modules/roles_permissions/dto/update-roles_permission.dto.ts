@@ -1,5 +1,5 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { IsBoolean, IsInt, IsOptional } from "class-validator";
+import { IsBoolean, IsInt, IsOptional, IsString } from "class-validator";
 
 export class UpdateRolesPermissionDto {
     @IsInt()
@@ -12,10 +12,10 @@ export class UpdateRolesPermissionDto {
     @ApiProperty()
     role_id?: number;
 
-    @IsInt()
+    @IsString()
     @IsOptional()
     @ApiProperty()
-    permission_id?: number;
+    permission_id?: string;
 
     @IsBoolean()
     @IsOptional()

@@ -6,9 +6,9 @@ export class CreateRolesPermissionDto {
     @ApiProperty()
     role_id: number;
 
-    @IsInt()
+    @IsString()
     @ApiProperty()
-    permission_id: number;
+    permission_id: string;
 
     @IsBoolean()
     @ApiProperty()

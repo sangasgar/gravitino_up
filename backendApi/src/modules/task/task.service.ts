@@ -6,6 +6,8 @@ import { Category } from 'src/modules/category/entities/category.entity';
 import { Task } from './entities/task.entity';
 import { TransactionHistoryService } from '../transaction_history/transaction_history.service';
 import { Sequelize } from 'sequelize-typescript';
+import { AppError } from 'src/common/constants/error';
+import { AppStrings } from 'src/common/constants/strings';
 
 @Injectable()
 export class TaskService {
@@ -26,7 +28,7 @@ export class TaskService {
       const foundCategory = await this.categoryRepository.findOne({ where: { category_id } });
 
       if (foundCategory == null) {
-        throw new HttpException('Категория не найдена!', HttpStatus.BAD_REQUEST);
+        throw new HttpException(AppError.CATEGORY_NOT_FOUND, HttpStatus.BAD_REQUEST);
       }
 
       result = await this.taskRepository.create(task, transactionHost).catch((error) => {
@@ -54,7 +56,7 @@ export class TaskService {
     const result = await this.taskRepository.findOne({ where: { task_id }, include: [Category], attributes: { exclude: ['category_id'] } });
 
     if (!result) {
-      throw new HttpException('Задача не найдена!', HttpStatus.NOT_FOUND);
+      throw new HttpException(AppError.TASK_NOT_FOUND, HttpStatus.NOT_FOUND);
     } else {
       return result;
     }
@@ -70,7 +72,7 @@ export class TaskService {
       const foundTask = await this.taskRepository.findOne({ where: { task_id }, include: [Category], attributes: { exclude: ['category_id'] } });
 
       if (!foundTask) {
-        throw new HttpException('Задача не найдена!', HttpStatus.NOT_FOUND);
+        throw new HttpException(AppError.TASK_NOT_FOUND, HttpStatus.NOT_FOUND);
       }
 
       var foundCategory;
@@ -79,7 +81,7 @@ export class TaskService {
         foundCategory = await this.categoryRepository.findOne({ where: { category_id } });
 
         if (!foundCategory) {
-          throw new HttpException('Категория не найдена!', HttpStatus.BAD_REQUEST);
+          throw new HttpException(AppError.CATEGORY_NOT_FOUND, HttpStatus.BAD_REQUEST);
         }
       }
 
@@ -104,7 +106,7 @@ export class TaskService {
     await this.sequelize.transaction(async trx => {
       const foundObject = await this.taskRepository.findOne({ where: { task_id } });
       if (!foundObject) {
-        throw new HttpException('Задача не найдена!', HttpStatus.NOT_FOUND);
+        throw new HttpException(AppError.TASK_NOT_FOUND, HttpStatus.NOT_FOUND);
       }
 
       await this.taskRepository.destroy({ where: { task_id }, transaction: trx }).catch((error) => {
@@ -120,6 +122,6 @@ export class TaskService {
       }
       await this.historyService.create(historyDto);;
     });
-    return { statusCode: 200, message: 'Строка успешно удалена!' };
+    return { statusCode: 200, message: AppStrings.SUCCESS_ROW_DELETE };
   }
 }

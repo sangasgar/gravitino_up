@@ -3,7 +3,7 @@ import { TransactionHistoryService } from './transaction_history.service';
 import { CreateTransactionHistoryDto } from './dto/create-transaction_history.dto';
 import { UpdateTransactionHistoryDto } from './dto/update-transaction_history.dto';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
-import { JwtAuthGuard } from '../guards/auth.guard';
+import { JwtAuthGuard } from '../auth/guards/auth.guard';
 
 @ApiBearerAuth()
 @ApiTags('Transaction History')

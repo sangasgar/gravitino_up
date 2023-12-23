@@ -3,7 +3,7 @@ import { RolesPermissionsService } from './roles_permissions.service';
 import { CreateRolesPermissionDto } from './dto/create-roles_permission.dto';
 import { UpdateRolesPermissionDto } from './dto/update-roles_permission.dto';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
-import { JwtAuthGuard } from '../guards/auth.guard';
+import { JwtAuthGuard } from '../auth/guards/auth.guard';
 
 @ApiBearerAuth()
 @ApiTags('RolesPermissions')

@@ -3,7 +3,10 @@ import { CategoryService } from './category.service';
 import { CreateCategoryDto } from './dto/create-category.dto';
 import { UpdateCategoryDto } from './dto/update-category.dto';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
-import { JwtAuthGuard } from 'src/modules/guards/auth.guard';
+import { JwtAuthGuard } from 'src/modules/auth/guards/auth.guard';
+import { HasPermissions } from '../auth/guards/permissions.decorator';
+import { PermissionEnum } from '../auth/guards/enums/permission.enum';
+import { PermissionsGuard } from '../auth/guards/permission.guard';
 
 @ApiBearerAuth()
 @ApiTags('task-category')
@@ -11,7 +14,8 @@ import { JwtAuthGuard } from 'src/modules/guards/auth.guard';
 export class CategoryController {
     constructor(private readonly categoryService: CategoryService) { }
 
-    @UseGuards(JwtAuthGuard)
+    @HasPermissions(PermissionEnum.CategoryCreate)
+    @UseGuards(JwtAuthGuard, PermissionsGuard)
     @Post()
     create(@Body() createCategoryDto: CreateCategoryDto, @Req() request) {
         return this.categoryService.create(createCategoryDto, request.user.user_id);
@@ -29,13 +33,15 @@ export class CategoryController {
         return this.categoryService.findOne(+id);
     }
 
-    @UseGuards(JwtAuthGuard)
+    @HasPermissions(PermissionEnum.CategoryUpdate)
+    @UseGuards(JwtAuthGuard, PermissionsGuard)
     @Patch(':id')
     update(@Body() updateCategoryDto: UpdateCategoryDto, @Req() request) {
         return this.categoryService.update(updateCategoryDto, request.user.user_id);
     }
 
-    @UseGuards(JwtAuthGuard)
+    @HasPermissions(PermissionEnum.CategoryDelete)
+    @UseGuards(JwtAuthGuard, PermissionsGuard)
     @Delete(':id')
     remove(@Param('id') id: number, @Req() request) {
         return this.categoryService.remove(+id, request.user.user_id);

@@ -3,7 +3,7 @@ import { OrganizationTypeService } from './organization_type.service';
 import { CreateOrganizationTypeDto } from './dto/create-organization_type.dto';
 import { UpdateOrganizationTypeDto } from './dto/update-organization_type.dto';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
-import { JwtAuthGuard } from 'src/modules/guards/auth.guard';
+import { JwtAuthGuard } from 'src/modules/auth/guards/auth.guard';
 
 @ApiBearerAuth()
 @ApiTags('organization-type')
