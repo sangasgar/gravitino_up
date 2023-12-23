@@ -36,7 +36,7 @@ export class ReportService {
         throw new HttpException(AppError.FILE_TYPE_NOT_FOUND, HttpStatus.BAD_REQUEST);
       }
 
-      var result = await this.reportRepository.create(createReportDto, transactionHost).catch((error) => {
+      result = await this.reportRepository.create(createReportDto, transactionHost).catch((error) => {
         let errorMessage = error.message;
         let errorCode = HttpStatus.BAD_REQUEST;
 

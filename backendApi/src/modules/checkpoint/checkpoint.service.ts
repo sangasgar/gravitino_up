@@ -86,14 +86,12 @@ export class CheckpointService {
         }
       }
 
-      await foundCheckpoint.update(updatedCheckpoint, transactionHost).catch((error) => {
+      result = await foundCheckpoint.update(updatedCheckpoint, transactionHost).catch((error) => {
         let errorMessage = error.message;
         let errorCode = HttpStatus.BAD_REQUEST;
 
         throw new HttpException(errorMessage, errorCode);
       });
-
-
 
       const historyDto = {
         "user_id": user_id,
