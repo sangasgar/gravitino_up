@@ -3,13 +3,12 @@ import { GroupService } from './group.service';
 import { GroupController } from './group.controller';
 import { SequelizeModule } from '@nestjs/sequelize';
 import { Group } from './entities/group.entity';
-import { TransactionHistory } from '../transaction_history/entities/transaction_history.entity';
-import { User } from '../users/entities/user.entity';
-import { TransactionHistoryService } from '../transaction_history/transaction_history.service';
+import { UsersModule } from '../users/users.module';
+import { TransactionHistoryModule } from '../transaction_history/transaction_history.module';
 
 @Module({
-  imports: [SequelizeModule.forFeature([Group, User, TransactionHistory])],
+  imports: [SequelizeModule.forFeature([Group]), UsersModule, TransactionHistoryModule],
   controllers: [GroupController],
-  providers: [GroupService, TransactionHistoryService],
+  providers: [GroupService],
 })
 export class GroupModule { }

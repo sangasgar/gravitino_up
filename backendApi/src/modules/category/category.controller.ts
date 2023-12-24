@@ -31,7 +31,7 @@ export class CategoryController {
     @ApiBearerAuth()
     @HasPermissions(PermissionEnum.CategoryUpdate)
     @UseGuards(JwtAuthGuard, PermissionsGuard)
-    @Patch(':id')
+    @Patch()
     async update(@Body() updateCategoryDto: UpdateCategoryDto, @Req() request) {
         let foundCategory = null;
         if (updateCategoryDto.category_id) {

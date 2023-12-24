@@ -1,12 +1,12 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
-import { CreateGroupDto } from './dto/create-group.dto';
-import { UpdateGroupDto } from './dto/update-group.dto';
+import { CreateGroupDto, UpdateGroupDto } from './dto';
 import { InjectModel } from '@nestjs/sequelize';
 import { Group } from './entities/group.entity';
 import { Sequelize } from 'sequelize-typescript';
 import { TransactionHistoryService } from '../transaction_history/transaction_history.service';
 import { AppError } from 'src/common/constants/error';
 import { AppStrings } from 'src/common/constants/strings';
+import { GroupResponse } from './response';
 
 @Injectable()
 export class GroupService {
@@ -17,94 +17,81 @@ export class GroupService {
   ) { }
 
   async create(group: CreateGroupDto, user_id: number) {
-    let result;
-
-    await this.sequelize.transaction(async trx => {
-      const transactionHost = { transaction: trx };
-
-      result = await this.groupRepository.create(group, transactionHost).catch((error) => {
-        let errorMessage = error.message;
-        let errorCode = HttpStatus.BAD_REQUEST;
-
-        throw new HttpException(errorMessage, errorCode);
-      });
+    try {
+      const newGroup = await this.groupRepository.create(group);
 
       const historyDto = {
         "user_id": user_id,
-        "comment": `Создана группа #${result.group_id}`,
+        "comment": `Создана группа #${newGroup.group_id}`,
       }
       await this.historyService.create(historyDto);
-    })
 
-    return result;
-  }
-
-  async findAll() {
-    return await this.groupRepository.findAll();
-  }
-
-  async findOne(group_id: number) {
-    const result = await this.groupRepository.findOne({ where: { group_id } });
-
-    if (result == null) {
-      throw new HttpException(AppError.GROUP_NOT_FOUND, HttpStatus.NOT_FOUND)
-    } else {
-      return result;
+      return newGroup;
+    } catch (error) {
+      throw new Error(error);
     }
   }
 
-  async update(updatedGroup: UpdateGroupDto, user_id: number) {
-    let result;
+  async findAll() {
+    try {
+      const foundGroups = await this.groupRepository.findAll();
+      return foundGroups;
+    } catch (error) {
+      throw new Error(error);
+    }
+  }
 
-    await this.sequelize.transaction(async trx => {
-      const transactionHost = { transaction: trx };
+  async findOne(group_id: number) {
+    try {
+      const result = await this.groupRepository.findOne({ where: { group_id } });
 
-      const group_id = updatedGroup.group_id;
-      const foundObject = await this.groupRepository.findOne({ where: { group_id } });
+      if (result) {
+        return true;
+      } else {
+        return false;
+      }
+    } catch (error) {
+      throw new Error(error);
+    }
+  }
 
-      if (foundObject == null) {
-        throw new HttpException(AppError.GROUP_NOT_FOUND, HttpStatus.NOT_FOUND)
+  async update(updatedGroup: UpdateGroupDto, user_id: number): Promise<GroupResponse> {
+    try {
+      await this.groupRepository.update({ ...updatedGroup }, { where: { group_id: updatedGroup.group_id } });
+
+      const foundGroup = await this.groupRepository.findOne({ where: { group_id: updatedGroup.group_id } });
+
+      if (foundGroup) {
+        const historyDto = {
+          "user_id": user_id,
+          "comment": `Изменена группа #${foundGroup.group_id}`,
+        }
+        await this.historyService.create(historyDto);
       }
 
-      result = await foundObject.update(updatedGroup, transactionHost).catch((error) => {
-        let errorMessage = error.message;
-        let errorCode = HttpStatus.BAD_REQUEST;
-
-        throw new HttpException(errorMessage, errorCode);
-      });
-
-      const historyDto = {
-        "user_id": user_id,
-        "comment": `Изменена группа #${result.group_id}`,
-      }
-      await this.historyService.create(historyDto);
-    })
-
-    return result;
+      return foundGroup;
+    } catch (error) {
+      throw new Error(error);
+    }
   }
 
   async remove(group_id: number, user_id: number) {
-    await this.sequelize.transaction(async trx => {
-      const result = await this.groupRepository.findOne({ where: { group_id } });
+    try {
+      const deleteGroup = await this.groupRepository.destroy({ where: { group_id } })
 
-      if (result == null) {
-        throw new HttpException(AppError.GROUP_NOT_FOUND, HttpStatus.BAD_REQUEST)
+      if (deleteGroup) {
+        const historyDto = {
+          "user_id": user_id,
+          "comment": `Удалена группа #${group_id}`,
+        }
+        await this.historyService.create(historyDto);
+
+        return { status: true }
       }
 
-      await this.groupRepository.destroy({ where: { group_id }, transaction: trx }).catch((error) => {
-        let errorMessage = error.message;
-        let errorCode = HttpStatus.BAD_REQUEST;
-
-        throw new HttpException(errorMessage, errorCode);
-      });
-
-      const historyDto = {
-        "user_id": user_id,
-        "comment": `Удалена группа #${result.group_id}`,
-      }
-      await this.historyService.create(historyDto);
-    })
-
-    return { statusCode: 200, message: AppStrings.SUCCESS_ROW_DELETE };
+      return { status: false }
+    } catch (error) {
+      return new Error(error);
+    }
   }
 }
