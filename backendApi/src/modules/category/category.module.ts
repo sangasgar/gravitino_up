@@ -3,13 +3,11 @@ import { CategoryService } from './category.service';
 import { SequelizeModule } from '@nestjs/sequelize';
 import { Category } from './entities/category.entity';
 import { CategoryController } from './category.controller';
-import { TransactionHistoryService } from '../transaction_history/transaction_history.service';
-import { TransactionHistory } from '../transaction_history/entities/transaction_history.entity';
-import { User } from '../users/entities/user.entity';
+import { TransactionHistoryModule } from '../transaction_history/transaction_history.module';
 
 @Module({
-  imports: [SequelizeModule.forFeature([Category, TransactionHistory, User])],
+  imports: [SequelizeModule.forFeature([Category]), TransactionHistoryModule],
   controllers: [CategoryController],
-  providers: [CategoryService, TransactionHistoryService],
+  providers: [CategoryService],
 })
 export class CategoryModule { }

@@ -50,18 +50,17 @@ export class OrganizationService {
     return await this.organizationRepository.findAll({ include: [OrganizationType], attributes: { exclude: ['organization_type_id'] } });
   }
 
-  async findOne(organization_id: number) {
-    const result = await this.organizationRepository.findOne({ where: { organization_id }, include: [OrganizationType], attributes: { exclude: ['organization_type_id'] } });
+  async findOne(organization_id: number): Promise<boolean> {
+    try {
+      const result = await this.organizationRepository.findOne({ where: { organization_id } });
 
-    if (result == null) {
-      return Promise.reject(
-        {
-          statusCode: 404,
-          message: AppError.ORGANIZATION_NOT_FOUND
-        }
-      )
-    } else {
-      return result;
+      if (result) {
+        return true;
+      } else {
+        return false;
+      }
+    } catch (error) {
+      throw new Error(error);
     }
   }
 

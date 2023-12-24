@@ -1,7 +1,11 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { IsInt, IsString } from "class-validator";
+import { IsBoolean, IsInt, IsString } from "class-validator";
 
-export class CreateFacilityDto {
+export class FacilityResponse {
+    @IsInt()
+    @ApiProperty({ default: 1 })
+    facility_id: number;
+
     @IsInt()
     @ApiProperty({ default: 1 })
     checkpoint_id: number;
@@ -17,4 +21,10 @@ export class CreateFacilityDto {
     @IsString()
     @ApiProperty()
     city: string;
+}
+
+export class StatusFacilityResponse {
+    @IsBoolean()
+    @ApiProperty()
+    status: boolean;
 }

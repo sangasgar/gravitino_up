@@ -1,110 +1,91 @@
-import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
-import { CreateCategoryDto } from './dto/create-category.dto';
-import { UpdateCategoryDto } from './dto/update-category.dto';
+import { Injectable } from '@nestjs/common';
+import { CreateCategoryDto, UpdateCategoryDto } from './dto';
 import { InjectModel } from '@nestjs/sequelize';
 import { Category } from './entities/category.entity';
-import { Sequelize } from 'sequelize-typescript';
 import { TransactionHistoryService } from '../transaction_history/transaction_history.service';
-import { AppError } from 'src/common/constants/error';
-import { AppStrings } from 'src/common/constants/strings';
+import { CategoryResponse, StatusCategoryResponse } from './response';
 
 @Injectable()
 export class CategoryService {
   constructor(
     @InjectModel(Category) private categoryRepository: typeof Category,
     private readonly historyService: TransactionHistoryService,
-    private readonly sequelize: Sequelize,
   ) { }
 
-  async create(category: CreateCategoryDto, user_id: number) {
-    let result;
-
-    await this.sequelize.transaction(async trx => {
-      const transactionHost = { transaction: trx };
-
-      result = await this.categoryRepository.create(category, transactionHost).catch((error) => {
-        let errorMessage = error.message;
-        let errorCode = HttpStatus.BAD_REQUEST;
-
-        throw new HttpException(errorMessage, errorCode);
-      });
+  async create(category: CreateCategoryDto, user_id: number): Promise<CategoryResponse> {
+    try {
+      const newCategory = await this.categoryRepository.create(category);
 
       const historyDto = {
         "user_id": user_id,
-        "comment": `Создана категория #${result.category_id}`,
+        "comment": `Создана категория #${newCategory.category_id}`,
       }
       await this.historyService.create(historyDto);
-    })
-    return result;
-  }
 
-  async findAll() {
-    return await this.categoryRepository.findAll();
-  }
-
-  async findOne(category_id: number) {
-    const result = await this.categoryRepository.findOne({ where: { category_id } });
-
-    if (result == null) {
-      throw new HttpException(AppError.CATEGORY_NOT_FOUND, HttpStatus.BAD_REQUEST);
-    } else {
-      return result;
+      return newCategory;
+    } catch (error) {
+      throw new Error(error);
     }
   }
 
-  async update(updatedCategory: UpdateCategoryDto, user_id: number) {
-    let result;
-
-    await this.sequelize.transaction(async trx => {
-      const transactionHost = { transaction: trx };
-
-      const category_id = updatedCategory.category_id;
-      const foundObject = await this.categoryRepository.findOne({ where: { category_id } });
-
-      if (foundObject == null) {
-        throw new HttpException(AppError.CATEGORY_NOT_FOUND, HttpStatus.NOT_FOUND);
-      }
-
-      result = await foundObject.update(updatedCategory, transactionHost).catch((error) => {
-        let errorMessage = error.message;
-        let errorCode = HttpStatus.BAD_REQUEST;
-
-        throw new HttpException(errorMessage, errorCode);
-      });
-
-      const historyDto = {
-        "user_id": user_id,
-        "comment": `Изменена категория #${result.category_id}`,
-      }
-      await this.historyService.create(historyDto);
-    });
-
-
-    return result;
+  async findAll(): Promise<CategoryResponse[]> {
+    try {
+      const foundCategories = await this.categoryRepository.findAll();
+      return foundCategories;
+    } catch (error) {
+      throw new Error(error);
+    }
   }
 
-  async remove(category_id: number, user_id: number) {
-    await this.sequelize.transaction(async trx => {
-      const foundObject = await this.categoryRepository.findOne({ where: { category_id } });
+  async findOne(category_id: number): Promise<boolean> {
+    try {
+      const result = await this.categoryRepository.findOne({ where: { category_id } });
 
-      if (foundObject == null) {
-        throw new HttpException(AppError.CATEGORY_NOT_FOUND, HttpStatus.NOT_FOUND);
+      if (result) {
+        return true;
+      } else {
+        return false;
+      }
+    } catch (error) {
+      throw new Error(error);
+    }
+
+  }
+
+  async update(updatedCategory: UpdateCategoryDto, user_id: number): Promise<CategoryResponse> {
+    try {
+      let foundCategory = null;
+      await this.categoryRepository.update({ ...updatedCategory }, { where: { category_id: updatedCategory.category_id } });
+
+      foundCategory = await this.categoryRepository.findOne({ where: { category_id: updatedCategory.category_id } });
+
+      if (foundCategory) {
+        const historyDto = {
+          "user_id": user_id,
+          "comment": `Изменена категория #${foundCategory.category_id}`,
+        }
+        await this.historyService.create(historyDto);
       }
 
-      await this.categoryRepository.destroy({ where: { category_id }, transaction: trx }).catch((error) => {
-        let errorMessage = error.message;
-        let errorCode = HttpStatus.BAD_REQUEST;
+      return foundCategory;
+    } catch (error) {
+      throw new Error(error);
+    }
+  }
 
-        throw new HttpException(errorMessage, errorCode);
-      });
+  async remove(category_id: number, user_id: number): Promise<StatusCategoryResponse> {
+    const deleteCategory = await this.categoryRepository.destroy({ where: { category_id } });
 
+    if (deleteCategory) {
       const historyDto = {
         "user_id": user_id,
         "comment": `Удалена категория #${category_id}`,
       }
       await this.historyService.create(historyDto);
-    });
 
-    return { statusCode: 200, message: AppStrings.SUCCESS_ROW_DELETE };
+      return { status: true };
+    }
+
+    return { status: false };
   }
 }

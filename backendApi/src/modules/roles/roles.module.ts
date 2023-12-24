@@ -5,12 +5,11 @@ import { Role } from './entities/role.entity';
 import { SequelizeModule } from '@nestjs/sequelize';
 import { User } from 'src/modules/users/entities/user.entity';
 import { RolePermission } from '../roles_permissions/entities/roles_permission.entity';
-import { TransactionHistory } from '../transaction_history/entities/transaction_history.entity';
-import { TransactionHistoryService } from '../transaction_history/transaction_history.service';
+import { TransactionHistoryModule } from '../transaction_history/transaction_history.module';
 
 @Module({
-  imports: [SequelizeModule.forFeature([Role, User, RolePermission, TransactionHistory])],
+  imports: [SequelizeModule.forFeature([Role, User, RolePermission]), TransactionHistoryModule],
   controllers: [RolesController],
-  providers: [RolesService, TransactionHistoryService],
+  providers: [RolesService],
 })
 export class RolesModule { }

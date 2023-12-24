@@ -1,12 +1,9 @@
-import { HttpStatus, Injectable } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { CreateAuthDto } from './dto/create-auth.dto';
 import { UsersService } from 'src/modules/users/users.service';
 import * as bcrypt from 'bcrypt';
-import { User } from 'src/modules/users/entities/user.entity';
-import { Sequelize } from 'sequelize-typescript';
 import { AuthDto } from './dto/auth.dto';
 import { InjectModel } from '@nestjs/sequelize';
-import { STATUS_CODES } from 'http';
 import { Auth } from './entities/auth.entity';
 import { sign, verify } from 'jsonwebtoken';
 import { ConfigService } from '@nestjs/config';
@@ -15,26 +12,19 @@ import { AppError } from 'src/common/constants/error';
 @Injectable()
 export class AuthService {
   constructor(
-    @InjectModel(User) private userRepository: typeof User,
     @InjectModel(Auth) private authRepository: typeof Auth,
     private readonly usersService: UsersService,
     private readonly configService: ConfigService
   ) { }
 
   async create(createAuthDto: CreateAuthDto) {
-    const user_id = createAuthDto.user_id;
-    const foundUser = await this.userRepository.findOne({ where: { user_id } });
+    try {
+      const newAuth = await this.authRepository.create(createAuthDto);
 
-    if (!foundUser) {
-      return Promise.reject(
-        {
-          statusCode: HttpStatus.NOT_FOUND,
-          message: AppError.USER_NOT_FOUND
-        }
-      );
+      return newAuth;
+    } catch (error) {
+      throw new Error(error);
     }
-
-    return await this.authRepository.create(createAuthDto);
   }
 
   async login(auth: AuthDto, values: { userAgent: string; ipAddress: string },) {
@@ -44,12 +34,7 @@ export class AuthService {
       delete loginData['password'];
       return this.newRefreshAndAccessToken(loginData, values);
     } else {
-      return Promise.reject(
-        {
-          statusCode: HttpStatus.FORBIDDEN,
-          message: AppError.WRONG_CREDENTIALS,
-        }
-      )
+      throw new HttpException(AppError.WRONG_CREDENTIALS, HttpStatus.FORBIDDEN);
     }
   }
 
@@ -81,26 +66,17 @@ export class AuthService {
   async refresh(refreshStr: string): Promise<string | undefined> {
     const refreshToken = await this.retrieveRefreshToken(refreshStr);
     if (!refreshToken) {
-      return Promise.reject(
-        {
-          statusCode: HttpStatus.FORBIDDEN,
-          message: AppError.INVALID_JWT,
-        }
-      )
+      throw new HttpException(AppError.INVALID_JWT, HttpStatus.FORBIDDEN);
     }
 
     const user = await this.usersService.findById(refreshToken.user_id);
 
     if (!user) {
-      return Promise.reject(
-        {
-          statusCode: HttpStatus.NOT_FOUND,
-          message: AppError.USER_NOT_FOUND
-        }
-      )
+      throw new HttpException(AppError.USER_NOT_FOUND, HttpStatus.NOT_FOUND);
     }
 
     const loginData = await this.usersService.findByLogin(user.login);
+    delete loginData['password'];
 
     const accessToken = {
       ...loginData,
@@ -109,7 +85,7 @@ export class AuthService {
     return sign(accessToken, this.configService.get('access_secret'), { expiresIn: '1h' });
   }
 
-  private retrieveRefreshToken(
+  private async retrieveRefreshToken(
     refreshStr: string,
   ): Promise<Auth | undefined> {
     try {
@@ -119,16 +95,9 @@ export class AuthService {
       }
 
       const auth_id = decoded.dataValues.auth_id;
-      return Promise.resolve(
-        this.authRepository.findOne({ where: { auth_id } }),
-      );
-    } catch (e) {
-      return Promise.reject(
-        {
-          statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
-          message: e,
-        }
-      )
+      return await this.authRepository.findOne({ where: { auth_id } });
+    } catch (error) {
+      throw new HttpException(error, HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }
 
@@ -140,15 +109,10 @@ export class AuthService {
     }
 
     const auth_id = refreshToken.auth_id;
-    const foundAuth = await this.authRepository.findOne({ where: { auth_id } });
 
+    const foundAuth = await this.authRepository.findOne({ where: { auth_id } });
     if (!foundAuth) {
-      return Promise.reject(
-        {
-          statusCode: HttpStatus.NOT_FOUND,
-          message: AppError.INVALID_JWT
-        }
-      )
+      throw new HttpException(AppError.INVALID_JWT, HttpStatus.FORBIDDEN);
     }
 
     await this.authRepository.destroy({ where: { auth_id } });

@@ -3,14 +3,13 @@ import { FacilityService } from './facility.service';
 import { FacilityController } from './facility.controller';
 import { SequelizeModule } from '@nestjs/sequelize';
 import { Facility } from './entities/facility.entity';
-import { Checkpoint } from 'src/modules/checkpoint/entities/checkpoint.entity';
-import { TransactionHistory } from '../transaction_history/entities/transaction_history.entity';
 import { User } from '../users/entities/user.entity';
-import { TransactionHistoryService } from '../transaction_history/transaction_history.service';
+import { TransactionHistoryModule } from '../transaction_history/transaction_history.module';
+import { CheckpointModule } from '../checkpoint/checkpoint.module';
 
 @Module({
-  imports: [SequelizeModule.forFeature([Facility, Checkpoint, TransactionHistory, User])],
+  imports: [SequelizeModule.forFeature([Facility]), CheckpointModule, TransactionHistoryModule],
   controllers: [FacilityController],
-  providers: [FacilityService, TransactionHistoryService],
+  providers: [FacilityService],
 })
 export class FacilityModule { }

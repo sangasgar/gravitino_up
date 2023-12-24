@@ -16,6 +16,7 @@ import { TransactionHistoryService } from '../transaction_history/transaction_hi
 import { RolePermission } from '../roles_permissions/entities/roles_permission.entity';
 import { AppError } from 'src/common/constants/error';
 import { AppStrings } from 'src/common/constants/strings';
+import { Op } from 'sequelize';
 
 @Injectable()
 export class UsersService {
@@ -203,21 +204,35 @@ export class UsersService {
         }
     }
 
-    async findByLogin(login: string): Promise<any> {
-        const result = await this.userRepository.findOne({ include: [Person], where: { login }, attributes: { exclude: ['person_id'] } })
-        const userRoles = await this.rolePermissionRepository.findAll({ where: { role_id: result.role_id }, attributes: { exclude: ['role_permission_id', 'role_id', 'createdAt', 'updatedAt'] } });
+    async findUser({ user_id = -1, login = '' }: { user_id?: number, login?: string }): Promise<boolean> {
+        try {
+            const foundUser = await this.userRepository.findOne({ where: { [Op.or]: [{ user_id: user_id }, { login: login }] } });
 
-        if (result != null) {
-            const permissions = [];
-            userRoles.forEach(element => {
-                permissions.push(element.dataValues);
-            });
-            return { user_id: result.user_id, login: result.login, permissions, password: result.password, };
-        } else {
-            return Promise.reject({
-                statusCode: HttpStatus.NOT_FOUND,
-                message: AppError.USER_NOT_FOUND
-            });
+            if (foundUser) {
+                return true;
+            } else {
+                return false;
+            }
+        } catch (error) {
+            throw new Error(error);
+        }
+    }
+
+    async findByLogin(login: string): Promise<any> {
+        try {
+            const result = await this.userRepository.findOne({ include: [Person], where: { login }, attributes: { exclude: ['person_id'] } })
+
+            if (result != null) {
+                const userRoles = await this.rolePermissionRepository.findAll({ where: { role_id: result.role_id }, attributes: { exclude: ['role_permission_id', 'role_id', 'createdAt', 'updatedAt'] } });
+                const permissions = [];
+                userRoles.forEach(element => {
+                    permissions.push(element.dataValues);
+                });
+
+                return { user_id: result.user_id, login: result.login, permissions, password: result.password, };
+            }
+        } catch (error) {
+            throw new Error(error);
         }
     }
 
