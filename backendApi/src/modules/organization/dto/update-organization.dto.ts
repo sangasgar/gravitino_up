@@ -17,6 +17,26 @@ export class UpdateOrganizationDto {
     @ApiProperty()
     organization_name?: string;
 
+    @IsOptional()
+    @IsString()
+    @ApiProperty()
+    full_name?: string;
+
+    @IsOptional()
+    @IsString()
+    @ApiProperty()
+    short_name?: string;
+
+    @IsOptional()
+    @IsString()
+    @ApiProperty()
+    register_number?: string;
+
+    @IsOptional()
+    @IsString()
+    @ApiProperty()
+    bic?: string;
+
     @IsString()
     @IsOptional()
     @ApiProperty()

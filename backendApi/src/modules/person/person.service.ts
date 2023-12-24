@@ -1,9 +1,11 @@
-import { Injectable } from '@nestjs/common';
+import { HttpStatus, Injectable } from '@nestjs/common';
 import { CreatePersonDto } from './dto/create-person.dto';
 import { UpdatePersonDto } from './dto/update-person.dto';
 import { InjectModel } from '@nestjs/sequelize';
 import { User } from 'src/modules/users/entities/user.entity';
 import { Person } from './entities/person.entity';
+import { AppError } from 'src/common/constants/error';
+import { AppStrings } from 'src/common/constants/strings';
 
 @Injectable()
 export class PersonService {
@@ -26,8 +28,8 @@ export class PersonService {
     if (result == null) {
       return Promise.reject(
         {
-          statusCode: 404,
-          message: 'Данные пользователя не найдены!'
+          statusCode: HttpStatus.NOT_FOUND,
+          message: AppError.PERSON_NOT_FOUND
         }
       )
     } else {
@@ -42,8 +44,8 @@ export class PersonService {
     if (foundPerson == null) {
       return Promise.reject(
         {
-          statusCode: 404,
-          message: 'Данные пользователя не найдены!'
+          statusCode: HttpStatus.NOT_FOUND,
+          message: AppError.PERSON_NOT_FOUND
         }
       )
     }
@@ -59,13 +61,13 @@ export class PersonService {
     if (foundPerson == null) {
       return Promise.reject(
         {
-          statusCode: 404,
-          message: 'Данные пользователя не найдены!'
+          statusCode: HttpStatus.NOT_FOUND,
+          message: AppError.PERSON_NOT_FOUND
         }
       )
     } else {
       await this.personRepository.destroy({ where: { person_id } });
-      return { statusCode: 200, message: 'Строка успешно удалена!' };
+      return { statusCode: 200, message: AppStrings.SUCCESS_ROW_DELETE };
     }
   }
 }

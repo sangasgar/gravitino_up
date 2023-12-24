@@ -1,6 +1,8 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { BelongsTo, Column, DataType, ForeignKey, Model, PrimaryKey, Table } from "sequelize-typescript";
+import { NonAttribute } from "sequelize";
+import { BelongsTo, Column, DataType, ForeignKey, HasMany, Model, PrimaryKey, Table } from "sequelize-typescript";
 import { Category } from "src/modules/category/entities/category.entity";
+import { Order } from "src/modules/order/entities/order.entity";
 
 @Table
 export class Task extends Model<Task> {
@@ -31,4 +33,7 @@ export class Task extends Model<Task> {
     @ApiProperty({ example: '90 кв.м.', description: 'Площадь помещения/здания' })
     @Column({ type: DataType.STRING(500), allowNull: false, defaultValue: '' })
     area: string;
+
+    @HasMany(type => Order, 'task_id')
+    orders: NonAttribute<Order[]>;
 }

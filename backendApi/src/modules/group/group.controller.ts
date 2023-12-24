@@ -1,9 +1,9 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Req, HttpException, HttpStatus } from '@nestjs/common';
 import { GroupService } from './group.service';
-import { CreateGroupDto } from './dto/create-group.dto';
-import { UpdateGroupDto } from './dto/update-group.dto';
+import { CreateGroupDto, UpdateGroupDto } from './dto';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
-import { JwtAuthGuard } from 'src/modules/guards/auth.guard';
+import { JwtAuthGuard } from 'src/modules/auth/guards/auth.guard';
+import { AppError } from 'src/common/constants/error';
 
 @ApiBearerAuth()
 @ApiTags('group')
@@ -13,31 +13,38 @@ export class GroupController {
 
   @UseGuards(JwtAuthGuard)
   @Post()
-  create(@Body() createGroupDto: CreateGroupDto) {
-    return this.groupService.create(createGroupDto);
+  create(@Body() createGroupDto: CreateGroupDto, @Req() request) {
+    return this.groupService.create(createGroupDto, request.user.user_id);
   }
 
   @UseGuards(JwtAuthGuard)
-  @Get()
+  @Get('all')
   findAll() {
     return this.groupService.findAll();
   }
 
   @UseGuards(JwtAuthGuard)
-  @Get(':id')
-  findOne(@Param('id') id: number) {
-    return this.groupService.findOne(+id);
-  }
+  @Patch()
+  async update(@Body() updateGroupDto: UpdateGroupDto, @Req() request) {
+    let foundGroup = null;
+    if (updateGroupDto.group_id) {
+      foundGroup = await this.groupService.findOne(updateGroupDto.group_id);
+    }
+    if (!foundGroup) {
+      throw new HttpException(AppError.GROUP_NOT_FOUND, HttpStatus.NOT_FOUND);
+    }
 
-  @UseGuards(JwtAuthGuard)
-  @Patch(':id')
-  update(@Body() updateGroupDto: UpdateGroupDto) {
-    return this.groupService.update(updateGroupDto);
+    return this.groupService.update(updateGroupDto, request.user.user_id);
   }
 
   @UseGuards(JwtAuthGuard)
   @Delete(':id')
-  remove(@Param('id') id: number) {
-    return this.groupService.remove(+id);
+  async remove(@Param('id') id: number, @Req() request) {
+    const foundGroup = await this.groupService.findOne(id);
+    if (!foundGroup) {
+      throw new HttpException(AppError.GROUP_NOT_FOUND, HttpStatus.NOT_FOUND);
+    }
+
+    return this.groupService.remove(+id, request.user.user_id);
   }
 }

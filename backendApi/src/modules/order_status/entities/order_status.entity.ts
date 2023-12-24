@@ -1,5 +1,7 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { Column, DataType, Model, PrimaryKey, Table } from "sequelize-typescript";
+import { NonAttribute } from "sequelize";
+import { Column, DataType, HasMany, Model, PrimaryKey, Table } from "sequelize-typescript";
+import { Order } from "src/modules/order/entities/order.entity";
 
 @Table
 export class OrderStatus extends Model<OrderStatus> {
@@ -11,6 +13,6 @@ export class OrderStatus extends Model<OrderStatus> {
     @Column({ type: DataType.STRING(30), allowNull: false })
     status_name: string;
 
-    // @OneToMany(type => Task, task => task.status)
-    // tasks: Task[];
+    @HasMany(type => Order, 'status_id')
+    orders: NonAttribute<Order[]>;
 }

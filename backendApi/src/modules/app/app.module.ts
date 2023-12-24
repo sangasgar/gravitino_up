@@ -33,6 +33,13 @@ import { Checkpoint } from '../checkpoint/entities/checkpoint.entity';
 import { AuthModule } from '../auth/auth.module';
 import { CategoryModule } from '../category/category.module';
 import { CheckpointModule } from '../checkpoint/checkpoint.module';
+import { Order } from '../order/entities/order.entity';
+import { Permission } from '../permissions/entities/permission.entity';
+import { RolePermission } from '../roles_permissions/entities/roles_permission.entity';
+import { TransactionHistory } from '../transaction_history/entities/transaction_history.entity';
+import { PermissionsModule } from '../permissions/permissions.module';
+import { RolesPermissionsModule } from '../roles_permissions/roles_permissions.module';
+import { TransactionHistoryModule } from '../transaction_history/transaction_history.module';
 
 @Module({
   imports: [
@@ -53,45 +60,52 @@ import { CheckpointModule } from '../checkpoint/checkpoint.module';
         synchronize: true,
         models: [
           User,
-        Auth,
-        Person,
-        Role,
-        Group,
-        Organization,
-        OrganizationType,
-        Task,
-        Category,
-        OrderStatus,
-        OrderPriority,
-        Checkpoint,
-        Facility,
-        FileType,
-        Report,
+          Auth,
+          Person,
+          Role,
+          Group,
+          Organization,
+          OrganizationType,
+          Task,
+          Category,
+          OrderStatus,
+          OrderPriority,
+          Checkpoint,
+          Facility,
+          FileType,
+          Report,
+          Order,
+          Permission,
+          RolePermission,
+          TransactionHistory,
         ],
       }),
       inject: [ConfigService],
     }),
-    UsersModule,
     AuthModule,
+    UsersModule,
     PersonModule,
     RolesModule,
     GroupModule,
 
-    OrganizationModule,
     OrganizationTypeModule,
+    OrganizationModule,
 
     OrderStatusModule,
     PriorityModule,
-
     TaskModule,
     CategoryModule,
+    OrderModule,
 
     CheckpointModule,
     FacilityModule,
 
     FileTypeModule,
     ReportModule,
-    OrderModule,
+
+    PermissionsModule,
+    RolesPermissionsModule,
+    TransactionHistoryModule,
   ],
 })
 export class AppModule { }

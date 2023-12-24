@@ -1,10 +1,9 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Put, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Req, HttpException, HttpStatus } from '@nestjs/common';
 import { FileTypeService } from './file_type.service';
-import { CreateFileTypeDto } from './dto/create-file_type.dto';
-import { UpdateFileTypeDto } from './dto/update-file_type.dto';
+import { CreateFileTypeDto, UpdateFileTypeDto } from './dto';
 import { ApiBearerAuth, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
-import { FileType } from './entities/file_type.entity';
-import { JwtAuthGuard } from 'src/modules/guards/auth.guard';
+import { JwtAuthGuard } from 'src/modules/auth/guards/auth.guard';
+import { AppError } from 'src/common/constants/error';
 
 @ApiBearerAuth()
 @ApiTags('file-type')
@@ -16,25 +15,14 @@ export class FileTypeController {
   @Post()
   @ApiOperation({ summary: 'Создание нового типа файла' })
   @ApiResponse({ status: 201, description: 'Тип файла успешно создан!' })
-  create(@Body() createFileTypeDto: CreateFileTypeDto) {
-    return this.fileTypeService.create(createFileTypeDto);
+  async create(@Body() createFileTypeDto: CreateFileTypeDto, @Req() request) {
+    return this.fileTypeService.create(createFileTypeDto, request.user.user_id);
   }
 
-  @Get()
+  @Get('all')
   @ApiOperation({ summary: 'Получение всех типов файла' })
-  findAll() {
+  async findAll() {
     return this.fileTypeService.findAll();
-  }
-
-  @Get(':id')
-  @ApiOperation({ summary: 'Получение отдельного типа файла' })
-  @ApiResponse({
-    status: 200,
-    description: 'Найденная запись',
-    type: FileType,
-  })
-  findOne(@Param('id') id: number) {
-    return this.fileTypeService.findOne(+id);
   }
 
   @UseGuards(JwtAuthGuard)
@@ -42,8 +30,15 @@ export class FileTypeController {
   @ApiOperation({ summary: 'Обновление отдельного типа файла' })
   @ApiResponse({ status: 200, description: 'Тип файла успешно обновлен!' })
   @ApiResponse({ status: 404, description: 'Тип файла не существует!' })
-  update(@Body() updateFileTypeDto: UpdateFileTypeDto) {
-    return this.fileTypeService.update(updateFileTypeDto);
+  async update(@Body() updateFileTypeDto: UpdateFileTypeDto, @Req() request) {
+    let foundFileType = null;
+    if (updateFileTypeDto.file_type_id) {
+      foundFileType = await this.fileTypeService.findOne(updateFileTypeDto.file_type_id);
+    }
+    if (!foundFileType) {
+      throw new HttpException(AppError.FILE_TYPE_NOT_FOUND, HttpStatus.NOT_FOUND);
+    }
+    return this.fileTypeService.update(updateFileTypeDto, request.user.user_id);
   }
 
   @UseGuards(JwtAuthGuard)
@@ -51,7 +46,12 @@ export class FileTypeController {
   @ApiOperation({ summary: 'Удаление отдельного типа файла' })
   @ApiResponse({ status: 201, description: 'Тип файла успешно удален!' })
   @ApiResponse({ status: 404, description: 'Тип файла не существует!' })
-  remove(@Param('id') id: number) {
-    return this.fileTypeService.remove(+id);
+  async remove(@Param('id') id: number, @Req() request) {
+    const foundFileType = await this.fileTypeService.findOne(id);
+    if (!foundFileType) {
+      throw new HttpException(AppError.FILE_TYPE_NOT_FOUND, HttpStatus.NOT_FOUND);
+    }
+
+    return this.fileTypeService.remove(+id, request.user.user_id);
   }
 }

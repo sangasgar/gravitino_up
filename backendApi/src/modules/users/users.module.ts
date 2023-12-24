@@ -7,9 +7,13 @@ import { Organization } from 'src/modules/organization/entities/organization.ent
 import { SequelizeModule } from '@nestjs/sequelize';
 import { Person } from 'src/modules/person/entities/person.entity';
 import { Group } from 'src/modules/group/entities/group.entity';
+import { TransactionHistory } from '../transaction_history/entities/transaction_history.entity';
+import { RolePermission } from '../roles_permissions/entities/roles_permission.entity';
+import { PersonModule } from '../person/person.module';
+import { TransactionHistoryModule } from '../transaction_history/transaction_history.module';
 
 @Module({
-    imports: [SequelizeModule.forFeature([User, Role, Organization, Person, Group])],
+    imports: [SequelizeModule.forFeature([User, Role, Organization, Group, TransactionHistory, RolePermission, Person]), PersonModule, TransactionHistoryModule],
     controllers: [UsersController],
     providers: [UsersService],
     exports: [UsersService],

@@ -1,6 +1,8 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { BelongsTo, Column, DataType, ForeignKey, Model, PrimaryKey, Table } from "sequelize-typescript";
+import { NonAttribute } from "sequelize";
+import { BelongsTo, Column, DataType, ForeignKey, HasMany, Model, PrimaryKey, Table } from "sequelize-typescript";
 import { Checkpoint } from "src/modules/checkpoint/entities/checkpoint.entity";
+import { Order } from "src/modules/order/entities/order.entity";
 
 @Table
 export class Facility extends Model<Facility> {
@@ -28,7 +30,14 @@ export class Facility extends Model<Facility> {
     @Column({ type: DataType.STRING(30), allowNull: false, })
     facility_name: string;
 
-    @ApiProperty({ example: 'г. Москва', description: 'Местоположение пункта пропуска' })
+    @ApiProperty({ example: 'улица У.', description: 'Местоположение пункта пропуска' })
     @Column({ type: DataType.STRING, allowNull: false, })
     location: string;
+
+    @ApiProperty({ example: 'Москва', description: 'Город' })
+    @Column({ type: DataType.STRING, allowNull: false, })
+    city: string;
+
+    @HasMany(type => Order, 'facility_id')
+    orders: NonAttribute<Order[]>;
 }

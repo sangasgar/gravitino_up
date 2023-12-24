@@ -2,6 +2,7 @@ import { ApiProperty } from "@nestjs/swagger";
 import { NonAttribute } from "sequelize";
 import { BelongsTo, Column, DataType, ForeignKey, HasMany, Model, PrimaryKey, Table } from "sequelize-typescript";
 import { Checkpoint } from "src/modules/checkpoint/entities/checkpoint.entity";
+import { Order } from "src/modules/order/entities/order.entity";
 import { OrganizationType } from "src/modules/organization_type/entities/organization_type.entity";
 import { User } from "src/modules/users/entities/user.entity";
 
@@ -29,6 +30,22 @@ export class Organization extends Model<Organization> {
     @ApiProperty({ example: 'ООО "Компания"', description: 'Название организации' })
     @Column({ type: DataType.STRING(30), allowNull: false, })
     organization_name: string;
+
+    @ApiProperty()
+    @Column({ type: DataType.STRING, allowNull: false, })
+    full_name: string;
+
+    @ApiProperty()
+    @Column({ type: DataType.STRING, allowNull: false, })
+    short_name: string;
+
+    @ApiProperty()
+    @Column({ type: DataType.STRING, allowNull: false, })
+    register_number: string;
+
+    @ApiProperty()
+    @Column({ type: DataType.STRING, allowNull: false, })
+    bic: string;
 
     @ApiProperty({ example: '79001234567', description: 'Номер телефона организации' })
     @Column({ type: DataType.STRING, allowNull: false })
@@ -63,4 +80,7 @@ export class Organization extends Model<Organization> {
 
     @HasMany(type => Checkpoint, 'organization_id')
     checkpoints: NonAttribute<Checkpoint[]>;
+
+    @HasMany(type => Order, 'organization_id')
+    orders: NonAttribute<Order[]>;
 }

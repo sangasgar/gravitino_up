@@ -1,9 +1,9 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Req } from '@nestjs/common';
 import { TaskService } from './task.service';
 import { CreateTaskDto } from './dto/create-task.dto';
 import { UpdateTaskDto } from './dto/update-task.dto';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
-import { JwtAuthGuard } from 'src/modules/guards/auth.guard';
+import { JwtAuthGuard } from 'src/modules/auth/guards/auth.guard';
 
 @ApiBearerAuth()
 @ApiTags('task')
@@ -15,31 +15,25 @@ export class TaskController {
 
   @UseGuards(JwtAuthGuard)
   @Post()
-  create(@Body() createTaskDto: CreateTaskDto) {
-    return this.taskService.create(createTaskDto);
+  create(@Body() createTaskDto: CreateTaskDto, @Req() request) {
+    return this.taskService.create(createTaskDto, request.user.user_id);
   }
 
   @UseGuards(JwtAuthGuard)
-  @Get()
+  @Get('all')
   findAll() {
     return this.taskService.findAll();
   }
 
   @UseGuards(JwtAuthGuard)
-  @Get(':id')
-  findOne(@Param('id') id: number) {
-    return this.taskService.findOne(+id);
-  }
-
-  @UseGuards(JwtAuthGuard)
-  @Patch(':id')
-  update(@Body() updateTaskDto: UpdateTaskDto) {
-    return this.taskService.update(updateTaskDto);
+  @Patch()
+  update(@Body() updateTaskDto: UpdateTaskDto, @Req() request) {
+    return this.taskService.update(updateTaskDto, request.user.user_id);
   }
 
   @UseGuards(JwtAuthGuard)
   @Delete(':id')
-  remove(@Param('id') id: number) {
-    return this.taskService.remove(+id);
+  remove(@Param('id') id: number, @Req() request) {
+    return this.taskService.remove(+id, request.user.user_id);
   }
 }

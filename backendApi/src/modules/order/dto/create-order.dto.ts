@@ -4,30 +4,30 @@ import { IsDate, IsInt, IsNotEmpty, IsString } from "class-validator";
 export class CreateOrderDto {
     @IsNotEmpty()
     @IsInt()
-    @ApiProperty()
+    @ApiProperty({ default: 1 })
     task_id: number;
 
     @IsNotEmpty()
     @IsInt()
-    @ApiProperty()
+    @ApiProperty({ default: 1 })
     facility_id: number;
 
     @IsNotEmpty()
     @IsInt()
-    @ApiProperty()
+    @ApiProperty({ default: 1 })
     organization_id: number;
 
     @IsNotEmpty()
     @IsInt()
-    @ApiProperty()
+    @ApiProperty({ default: 1 })
     executor_id: number;
 
     @IsInt()
-    @ApiProperty()
+    @ApiProperty({ default: 1 })
     creator_id: number;
 
     @IsInt()
-    @ApiProperty()
+    @ApiProperty({ default: 1 })
     status_id: number;
 
     @IsNotEmpty()
@@ -42,6 +42,6 @@ export class CreateOrderDto {
 
     @IsNotEmpty()
     @IsInt()
-    @ApiProperty()
+    @ApiProperty({ default: 1 })
     priority_id: number;
 }

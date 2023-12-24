@@ -9,8 +9,8 @@ export class Category extends Model<Category> {
     @Column({ type: DataType.INTEGER, allowNull: false, autoIncrement: true, })
     category_id: number;
 
-    @ApiProperty({ example: 'Заказчик', description: 'Роль пользователя' })
-    @Column({ type: DataType.STRING(30), allowNull: false, })
+    @ApiProperty({ example: 'Категория №1', description: 'Название категории' })
+    @Column({ type: DataType.STRING, allowNull: false, })
     category_name: string;
 
     @HasMany(type => Task, 'category_id')

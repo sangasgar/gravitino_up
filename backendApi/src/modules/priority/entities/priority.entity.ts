@@ -1,5 +1,7 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { Column, DataType, Model, PrimaryKey, Table } from "sequelize-typescript";
+import { NonAttribute } from "sequelize";
+import { Column, DataType, HasMany, Model, PrimaryKey, Table } from "sequelize-typescript";
+import { Order } from "src/modules/order/entities/order.entity";
 
 @Table
 export class OrderPriority extends Model<OrderPriority> {
@@ -11,6 +13,6 @@ export class OrderPriority extends Model<OrderPriority> {
     @Column({ type: DataType.STRING(30), allowNull: false })
     priority_name: string;
 
-    // @OneToMany(type => Task, task => task.priority)
-    // tasks: Task[];
+    @HasMany(type => Order, 'priority_id')
+    orders: NonAttribute<Order[]>
 }

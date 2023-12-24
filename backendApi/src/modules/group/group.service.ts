@@ -1,68 +1,97 @@
-import { Injectable } from '@nestjs/common';
-import { CreateGroupDto } from './dto/create-group.dto';
-import { UpdateGroupDto } from './dto/update-group.dto';
+import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
+import { CreateGroupDto, UpdateGroupDto } from './dto';
 import { InjectModel } from '@nestjs/sequelize';
 import { Group } from './entities/group.entity';
+import { Sequelize } from 'sequelize-typescript';
+import { TransactionHistoryService } from '../transaction_history/transaction_history.service';
+import { AppError } from 'src/common/constants/error';
+import { AppStrings } from 'src/common/constants/strings';
+import { GroupResponse } from './response';
 
 @Injectable()
 export class GroupService {
-  constructor(@InjectModel(Group) private groupRepository: typeof Group,) { }
+  constructor(
+    @InjectModel(Group) private groupRepository: typeof Group,
+    private readonly historyService: TransactionHistoryService,
+    private readonly sequelize: Sequelize,
+  ) { }
 
-  async create(group: CreateGroupDto) {
-    var newObject = await this.groupRepository.create(group);
-    return newObject;
+  async create(group: CreateGroupDto, user_id: number) {
+    try {
+      const newGroup = await this.groupRepository.create(group);
+
+      const historyDto = {
+        "user_id": user_id,
+        "comment": `Создана группа #${newGroup.group_id}`,
+      }
+      await this.historyService.create(historyDto);
+
+      return newGroup;
+    } catch (error) {
+      throw new Error(error);
+    }
   }
 
   async findAll() {
-    return await this.groupRepository.findAll();
+    try {
+      const foundGroups = await this.groupRepository.findAll();
+      return foundGroups;
+    } catch (error) {
+      throw new Error(error);
+    }
   }
 
   async findOne(group_id: number) {
-    const result = await this.groupRepository.findOne({ where: { group_id } });
+    try {
+      const result = await this.groupRepository.findOne({ where: { group_id } });
 
-    if (result == null) {
-      return Promise.reject(
-        {
-          statusCode: 404,
-          message: 'Группа не найдена!'
-        }
-      )
-    } else {
-      return result;
+      if (result) {
+        return true;
+      } else {
+        return false;
+      }
+    } catch (error) {
+      throw new Error(error);
     }
   }
 
-  async update(updatedGroup: UpdateGroupDto) {
-    const group_id = updatedGroup.group_id;
-    const foundObject = await this.groupRepository.findOne({ where: { group_id } });
+  async update(updatedGroup: UpdateGroupDto, user_id: number): Promise<GroupResponse> {
+    try {
+      await this.groupRepository.update({ ...updatedGroup }, { where: { group_id: updatedGroup.group_id } });
 
-    if (foundObject == null) {
-      return Promise.reject(
-        {
-          statusCode: 404,
-          message: 'Группа не найдена!'
+      const foundGroup = await this.groupRepository.findOne({ where: { group_id: updatedGroup.group_id } });
+
+      if (foundGroup) {
+        const historyDto = {
+          "user_id": user_id,
+          "comment": `Изменена группа #${foundGroup.group_id}`,
         }
-      )
+        await this.historyService.create(historyDto);
+      }
+
+      return foundGroup;
+    } catch (error) {
+      throw new Error(error);
     }
-
-    await foundObject.update(updatedGroup);
-
-    return updatedGroup;
   }
 
-  async remove(group_id: number) {
-    const result = await this.groupRepository.findOne({ where: { group_id } });
+  async remove(group_id: number, user_id: number) {
+    try {
+      const deleteGroup = await this.groupRepository.destroy({ where: { group_id } })
 
-    if (result == null) {
-      return Promise.reject(
-        {
-          statusCode: 404,
-          message: 'Группа не найдена!'
+      if (deleteGroup) {
+        const historyDto = {
+          "user_id": user_id,
+          "comment": `Удалена группа #${group_id}`,
         }
-      )
-    } else {
-      await this.groupRepository.destroy({ where: { group_id } });
-      return { statusCode: 200, message: 'Строка успешно удалена!' };
+        await this.historyService.create(historyDto);
+
+        return { status: true }
+      }
+
+      return { status: false }
+    } catch (error) {
+      return new Error(error);
     }
   }
 }

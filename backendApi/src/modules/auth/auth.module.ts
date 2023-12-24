@@ -2,18 +2,14 @@ import { Module } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { AuthController } from './auth.controller';
 import { SequelizeModule } from '@nestjs/sequelize';
-import { User } from 'src/modules/users/entities/user.entity';
 import { Auth } from './entities/auth.entity';
-import { UsersService } from 'src/modules/users/users.service';
-import { Person } from 'src/modules/person/entities/person.entity';
-import { Group } from 'src/modules/group/entities/group.entity';
-import { Organization } from 'src/modules/organization/entities/organization.entity';
-import { Role } from 'src/modules/roles/entities/role.entity';
-import { JwtStrategy } from 'src/modules/strategies/jwt.strategy';
+import { JwtStrategy } from 'src/modules/auth/strategies/jwt.strategy';
+import { UsersModule } from '../users/users.module';
+import { TransactionHistoryModule } from '../transaction_history/transaction_history.module';
 
 @Module({
-  imports: [SequelizeModule.forFeature([User, Role, Organization, Person, Group, Auth,])],
+  imports: [SequelizeModule.forFeature([Auth]), UsersModule, TransactionHistoryModule],
   controllers: [AuthController],
-  providers: [AuthService, UsersService, JwtStrategy],
+  providers: [AuthService, JwtStrategy],
 })
 export class AuthModule { }

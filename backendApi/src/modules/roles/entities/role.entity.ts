@@ -1,6 +1,7 @@
 import { ApiProperty } from "@nestjs/swagger";
 import { NonAttribute } from "sequelize";
 import { Column, DataType, HasMany, Model, PrimaryKey, Table } from "sequelize-typescript";
+import { RolePermission } from "src/modules/roles_permissions/entities/roles_permission.entity";
 import { User } from "src/modules/users/entities/user.entity";
 
 @Table
@@ -15,4 +16,7 @@ export class Role extends Model<Role> {
 
     @HasMany(type => User, 'role_id')
     users: NonAttribute<User[]>;
+
+    @HasMany(type => RolePermission, 'role_id')
+    rolesPermissions: NonAttribute<RolePermission[]>;
 }

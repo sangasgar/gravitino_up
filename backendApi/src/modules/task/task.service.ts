@@ -1,32 +1,51 @@
-import { Injectable } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { CreateTaskDto } from './dto/create-task.dto';
 import { UpdateTaskDto } from './dto/update-task.dto';
 import { InjectModel } from '@nestjs/sequelize';
 import { Category } from 'src/modules/category/entities/category.entity';
 import { Task } from './entities/task.entity';
+import { TransactionHistoryService } from '../transaction_history/transaction_history.service';
+import { Sequelize } from 'sequelize-typescript';
+import { AppError } from 'src/common/constants/error';
+import { AppStrings } from 'src/common/constants/strings';
 
 @Injectable()
 export class TaskService {
   constructor(
     @InjectModel(Task) private taskRepository: typeof Task,
     @InjectModel(Category) private categoryRepository: typeof Category,
+    private readonly historyService: TransactionHistoryService,
+    private readonly sequelize: Sequelize,
   ) { }
 
-  async create(task: CreateTaskDto) {
-    const category_id = task.category_id;
-    const foundCategory = await this.categoryRepository.findOne({ where: { category_id } });
+  async create(task: CreateTaskDto, user_id: number) {
+    let result;
 
-    if (foundCategory == null) {
-      return Promise.reject(
-        {
-          statusCode: 404,
-          message: 'Категория не найдена!'
-        }
-      )
-    }
+    await this.sequelize.transaction(async trx => {
+      const transactionHost = { transaction: trx };
 
-    var newObject = await this.taskRepository.create(task);
-    return newObject;
+      const category_id = task.category_id;
+      const foundCategory = await this.categoryRepository.findOne({ where: { category_id } });
+
+      if (foundCategory == null) {
+        throw new HttpException(AppError.CATEGORY_NOT_FOUND, HttpStatus.BAD_REQUEST);
+      }
+
+      result = await this.taskRepository.create(task, transactionHost).catch((error) => {
+        let errorMessage = error.message;
+        let errorCode = HttpStatus.BAD_REQUEST;
+
+        throw new HttpException(errorMessage, errorCode);
+      });
+
+      const historyDto = {
+        "user_id": user_id,
+        "comment": `Создана задача #${result.task_id}`,
+      }
+      await this.historyService.create(historyDto);
+    })
+
+    return result;
   }
 
   async findAll() {
@@ -36,64 +55,73 @@ export class TaskService {
   async findOne(task_id: number) {
     const result = await this.taskRepository.findOne({ where: { task_id }, include: [Category], attributes: { exclude: ['category_id'] } });
 
-    if (result == null) {
-      return Promise.reject(
-        {
-          statusCode: 404,
-          message: 'Задача не найдена!'
-        }
-      )
+    if (!result) {
+      throw new HttpException(AppError.TASK_NOT_FOUND, HttpStatus.NOT_FOUND);
     } else {
       return result;
     }
   }
 
-  async update(updatedTask: UpdateTaskDto) {
-    const task_id = updatedTask.task_id;
-    const foundTask = await this.taskRepository.findOne({ where: { task_id }, include: [Category], attributes: { exclude: ['category_id'] } });
+  async update(updatedTask: UpdateTaskDto, user_id: number) {
+    let result;
 
-    if (foundTask == null) {
-      return Promise.reject(
-        {
-          statusCode: 404,
-          message: 'Задача не найдена!'
-        }
-      )
-    }
+    await this.sequelize.transaction(async trx => {
+      const transactionHost = { transaction: trx };
 
-    var foundCategory;
-    if (updatedTask.category_id != undefined) {
-      const category_id = updatedTask.category_id;
-      foundCategory = await this.categoryRepository.findOne({ where: { category_id } });
+      const task_id = updatedTask.task_id;
+      const foundTask = await this.taskRepository.findOne({ where: { task_id }, include: [Category], attributes: { exclude: ['category_id'] } });
 
-      if (foundCategory == null) {
-        return Promise.reject(
-          {
-            statusCode: 404,
-            message: 'Категория не найдена!'
-          }
-        )
+      if (!foundTask) {
+        throw new HttpException(AppError.TASK_NOT_FOUND, HttpStatus.NOT_FOUND);
       }
-    }
 
-    await foundTask.update(updatedTask);
+      var foundCategory;
+      if (updatedTask.category_id != undefined) {
+        const category_id = updatedTask.category_id;
+        foundCategory = await this.categoryRepository.findOne({ where: { category_id } });
 
-    return updatedTask;
+        if (!foundCategory) {
+          throw new HttpException(AppError.CATEGORY_NOT_FOUND, HttpStatus.BAD_REQUEST);
+        }
+      }
+
+      result = await foundTask.update(updatedTask, transactionHost).catch((error) => {
+        let errorMessage = error.message;
+        let errorCode = HttpStatus.BAD_REQUEST;
+
+        throw new HttpException(errorMessage, errorCode);
+      });
+
+      const historyDto = {
+        "user_id": user_id,
+        "comment": `Изменена задача #${result.organization_type_id}`,
+      }
+      await this.historyService.create(historyDto);
+    })
+
+    return result;
   }
 
-  async remove(task_id: number) {
-    const foundObject = await this.taskRepository.findOne({ where: { task_id } });
+  async remove(task_id: number, user_id: number) {
+    await this.sequelize.transaction(async trx => {
+      const foundObject = await this.taskRepository.findOne({ where: { task_id } });
+      if (!foundObject) {
+        throw new HttpException(AppError.TASK_NOT_FOUND, HttpStatus.NOT_FOUND);
+      }
 
-    if (foundObject == null) {
-      return Promise.reject(
-        {
-          statusCode: 404,
-          message: 'Задача не найдена!'
-        }
-      )
-    } else {
-      await this.taskRepository.destroy({ where: { task_id } });
-      return { statusCode: 200, message: 'Строка успешно удалена!' };
-    }
+      await this.taskRepository.destroy({ where: { task_id }, transaction: trx }).catch((error) => {
+        let errorMessage = error.message;
+        let errorCode = HttpStatus.BAD_REQUEST;
+
+        throw new HttpException(errorMessage, errorCode);
+      });
+
+      const historyDto = {
+        "user_id": user_id,
+        "comment": `Удалена задача #${task_id}`,
+      }
+      await this.historyService.create(historyDto);;
+    });
+    return { statusCode: 200, message: AppStrings.SUCCESS_ROW_DELETE };
   }
 }

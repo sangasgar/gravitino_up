@@ -1,10 +1,10 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Put, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Put, UseGuards, Req } from '@nestjs/common';
 import { OrganizationService } from './organization.service';
 import { CreateOrganizationDto } from './dto/create-organization.dto';
 import { UpdateOrganizationDto } from './dto/update-organization.dto';
 import { ApiBearerAuth, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { Organization } from './entities/organization.entity';
-import { JwtAuthGuard } from 'src/modules/guards/auth.guard';
+import { JwtAuthGuard } from 'src/modules/auth/guards/auth.guard';
 
 @ApiBearerAuth()
 @ApiTags('organization')
@@ -16,27 +16,15 @@ export class OrganizationController {
   @Post()
   @ApiOperation({ summary: 'Создание новой организации' })
   @ApiResponse({ status: 201, description: 'Организация успешно создана!' })
-  create(@Body() createOrganizationDto: CreateOrganizationDto) {
-    return this.organizationService.create(createOrganizationDto);
+  create(@Body() createOrganizationDto: CreateOrganizationDto, @Req() request) {
+    return this.organizationService.create(createOrganizationDto, request.user.user_id);
   }
 
   @UseGuards(JwtAuthGuard)
-  @Get()
+  @Get('all')
   @ApiOperation({ summary: 'Получение всех организаций' })
   findAll() {
     return this.organizationService.findAll();
-  }
-
-  @UseGuards(JwtAuthGuard)
-  @Get(':id')
-  @ApiOperation({ summary: 'Получение отдельной организации' })
-  @ApiResponse({
-    status: 200,
-    description: 'Найденная запись',
-    type: Organization,
-  })
-  findOne(@Param('id') id: number) {
-    return this.organizationService.findOne(+id);
   }
 
   @UseGuards(JwtAuthGuard)
@@ -45,8 +33,8 @@ export class OrganizationController {
   @ApiResponse({ status: 200, description: 'Организация успешно обновлена!' })
   @ApiResponse({ status: 404, description: 'Организация не существует!' })
   @ApiResponse({ status: 403, description: 'Forbidden!' })
-  update(@Body() updateOrganizationDto: UpdateOrganizationDto) {
-    return this.organizationService.update(updateOrganizationDto);
+  update(@Body() updateOrganizationDto: UpdateOrganizationDto, @Req() request) {
+    return this.organizationService.update(updateOrganizationDto, request.user.user_id);
   }
 
   @UseGuards(JwtAuthGuard)
@@ -54,7 +42,7 @@ export class OrganizationController {
   @ApiOperation({ summary: 'Удаление отдельной организации' })
   @ApiResponse({ status: 201, description: 'Организация успешно удалена!' })
   @ApiResponse({ status: 404, description: 'Организация не существует!' })
-  remove(@Param('id') id: number) {
-    return this.organizationService.remove(+id);
+  remove(@Param('id') id: number, @Req() request) {
+    return this.organizationService.remove(+id, request.user.user_id);
   }
 }
