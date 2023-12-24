@@ -20,19 +20,13 @@ export class TaskController {
   }
 
   @UseGuards(JwtAuthGuard)
-  @Get()
+  @Get('all')
   findAll() {
     return this.taskService.findAll();
   }
 
   @UseGuards(JwtAuthGuard)
-  @Get(':id')
-  findOne(@Param('id') id: number) {
-    return this.taskService.findOne(+id);
-  }
-
-  @UseGuards(JwtAuthGuard)
-  @Patch(':id')
+  @Patch()
   update(@Body() updateTaskDto: UpdateTaskDto, @Req() request) {
     return this.taskService.update(updateTaskDto, request.user.user_id);
   }

@@ -29,7 +29,7 @@ export class UsersController {
     }
 
     @UseGuards(JwtAuthGuard)
-    @Get()
+    @Get('all')
     @ApiOperation({ summary: 'Получение всех пользователей' })
     @ApiResponse({
         status: 200,

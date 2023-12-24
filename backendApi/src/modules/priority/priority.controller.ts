@@ -17,14 +17,9 @@ export class PriorityController {
     return this.priorityService.create(createPriorityDto, request.user.user_id);
   }
 
-  @Get()
+  @Get('all')
   findAll() {
     return this.priorityService.findAll();
-  }
-
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.priorityService.findOne(+id);
   }
 
   @UseGuards(JwtAuthGuard)

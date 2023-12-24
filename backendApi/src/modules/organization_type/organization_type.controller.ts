@@ -17,18 +17,14 @@ export class OrganizationTypeController {
     return this.organizationTypeService.create(createOrganizationTypeDto, request.user.user_id);
   }
 
-  @Get()
+  @Get('all')
   findAll() {
     return this.organizationTypeService.findAll();
   }
 
-  @Get(':id')
-  findOne(@Param('id') id: number) {
-    return this.organizationTypeService.findOne(+id);
-  }
 
   @UseGuards(JwtAuthGuard)
-  @Patch(':id')
+  @Patch()
   update(@Body() updateOrganizationTypeDto: UpdateOrganizationTypeDto, @Req() request) {
     return this.organizationTypeService.update(updateOrganizationTypeDto, request.user.user_id);
   }

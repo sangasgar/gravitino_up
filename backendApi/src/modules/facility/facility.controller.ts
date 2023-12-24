@@ -27,13 +27,13 @@ export class FacilityController {
   }
 
   @UseGuards(JwtAuthGuard)
-  @Get()
+  @Get('all')
   async findAll() {
     return this.facilityService.findAll();
   }
 
   @UseGuards(JwtAuthGuard)
-  @Patch(':id')
+  @Patch()
   async update(@Body() updateFacilityDto: UpdateFacilityDto, @Req() request) {
     let foundFacility = null;
     if (updateFacilityDto.facility_id) {

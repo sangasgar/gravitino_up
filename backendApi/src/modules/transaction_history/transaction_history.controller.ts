@@ -17,15 +17,9 @@ export class TransactionHistoryController {
     return this.transactionHistoryService.create(createTransactionHistoryDto);
   }
   @UseGuards(JwtAuthGuard)
-  @Get()
+  @Get('all')
   findAll() {
     return this.transactionHistoryService.findAll();
-  }
-
-  @UseGuards(JwtAuthGuard)
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.transactionHistoryService.findOne(+id);
   }
 
   @UseGuards(JwtAuthGuard)
