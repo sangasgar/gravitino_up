@@ -20,21 +20,10 @@ export class RolesController {
     return this.rolesService.create(createRoleDto, request.user.user_id);
   }
 
-  @Get()
+  @Get('all')
   @ApiOperation({ summary: 'Получение списка ролей' })
   findAll() {
     return this.rolesService.findAll();
-  }
-
-  @Get(':id')
-  @ApiOperation({ summary: 'Получение отдельной роли' })
-  @ApiResponse({
-    status: 200,
-    description: 'Найденная запись',
-    type: Role,
-  })
-  findOne(@Param('id') id: number) {
-    return this.rolesService.findOne(+id);
   }
 
   @UseGuards(JwtAuthGuard)

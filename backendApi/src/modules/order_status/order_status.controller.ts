@@ -20,21 +20,10 @@ export class OrderStatusController {
     return this.orderStatusService.create(createOrderStatusDto, request.user.user_id);
   }
 
-  @Get()
+  @Get('all')
   @ApiOperation({ summary: 'Получение всех статусов заказа' })
   findAll() {
     return this.orderStatusService.findAll();
-  }
-
-  @Get(':id')
-  @ApiOperation({ summary: 'Получение отдельного статуса заказа' })
-  @ApiResponse({
-    status: 200,
-    description: 'Найденная запись',
-    type: OrderStatus,
-  })
-  findOne(@Param('id') id: number) {
-    return this.orderStatusService.findOne(+id);
   }
 
   @UseGuards(JwtAuthGuard)

@@ -18,15 +18,9 @@ export class OrderController {
   }
 
   @UseGuards(JwtAuthGuard)
-  @Get()
+  @Get('all')
   findAll() {
     return this.orderService.findAll();
-  }
-
-  @UseGuards(JwtAuthGuard)
-  @Get(':id')
-  findOne(@Param('id') id: number) {
-    return this.orderService.findOne(+id);
   }
 
   @UseGuards(JwtAuthGuard)

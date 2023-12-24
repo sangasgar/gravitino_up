@@ -17,18 +17,13 @@ export class PermissionsController {
     return this.permissionsService.create(createPermissionDto, request.user.user_id);
   }
 
-  @Get()
+  @Get('all')
   findAll() {
     return this.permissionsService.findAll();
   }
 
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.permissionsService.findOne(id);
-  }
-
   @UseGuards(JwtAuthGuard)
-  @Patch(':id')
+  @Patch()
   update(@Body() updatePermissionDto: UpdatePermissionDto, @Req() request) {
     return this.permissionsService.update(updatePermissionDto, request.user.user_id);
   }

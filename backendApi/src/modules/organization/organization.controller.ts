@@ -21,22 +21,10 @@ export class OrganizationController {
   }
 
   @UseGuards(JwtAuthGuard)
-  @Get()
+  @Get('all')
   @ApiOperation({ summary: 'Получение всех организаций' })
   findAll() {
     return this.organizationService.findAll();
-  }
-
-  @UseGuards(JwtAuthGuard)
-  @Get(':id')
-  @ApiOperation({ summary: 'Получение отдельной организации' })
-  @ApiResponse({
-    status: 200,
-    description: 'Найденная запись',
-    type: Organization,
-  })
-  findOne(@Param('id') id: number) {
-    return this.organizationService.findOne(+id);
   }
 
   @UseGuards(JwtAuthGuard)

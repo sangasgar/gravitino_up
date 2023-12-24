@@ -27,13 +27,13 @@ export class CheckpointController {
   }
 
   @UseGuards(JwtAuthGuard)
-  @Get()
+  @Get('all')
   async findAll() {
     return this.checkpointService.findAll();
   }
 
   @UseGuards(JwtAuthGuard)
-  @Patch(':id')
+  @Patch()
   async update(@Body() updateCheckpointDto: UpdateCheckpointDto, @Req() request) {
     let foundCheckpoint = null;
     if (updateCheckpointDto.checkpoint_id) {

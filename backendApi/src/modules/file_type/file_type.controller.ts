@@ -19,7 +19,7 @@ export class FileTypeController {
     return this.fileTypeService.create(createFileTypeDto, request.user.user_id);
   }
 
-  @Get()
+  @Get('all')
   @ApiOperation({ summary: 'Получение всех типов файла' })
   async findAll() {
     return this.fileTypeService.findAll();

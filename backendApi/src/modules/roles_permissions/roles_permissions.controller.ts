@@ -18,19 +18,13 @@ export class RolesPermissionsController {
   }
 
   @UseGuards(JwtAuthGuard)
-  @Get()
+  @Get('all')
   findAll() {
     return this.rolesPermissionsService.findAll();
   }
 
   @UseGuards(JwtAuthGuard)
-  @Get(':id')
-  findOne(@Param('id') id: string, @Req() request) {
-    return this.rolesPermissionsService.findOne(+id);
-  }
-
-  @UseGuards(JwtAuthGuard)
-  @Patch(':id')
+  @Patch()
   update(@Body() updateRolesPermissionDto: UpdateRolesPermissionDto, @Req() request) {
     return this.rolesPermissionsService.update(updateRolesPermissionDto, request.user.user_id);
   }

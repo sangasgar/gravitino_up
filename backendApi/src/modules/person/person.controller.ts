@@ -10,7 +10,7 @@ export class PersonController {
   constructor(private readonly personService: PersonService) { }
 
   @UseGuards(JwtAuthGuard)
-  @Get()
+  @Get('all')
   findAll() {
     return this.personService.findAll();
   }
