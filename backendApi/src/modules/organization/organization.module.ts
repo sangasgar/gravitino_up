@@ -6,9 +6,11 @@ import { SequelizeModule } from '@nestjs/sequelize';
 import { User } from 'src/modules/users/entities/user.entity';
 import { OrganizationType } from 'src/modules/organization_type/entities/organization_type.entity';
 import { TransactionHistoryModule } from '../transaction_history/transaction_history.module';
+import { OrganizationTypeModule } from '../organization_type/organization_type.module';
+import { UsersModule } from '../users/users.module';
 
 @Module({
-  imports: [SequelizeModule.forFeature([Organization, User, OrganizationType]), TransactionHistoryModule],
+  imports: [SequelizeModule.forFeature([Organization]), TransactionHistoryModule, OrganizationTypeModule, UsersModule],
   controllers: [OrganizationController],
   providers: [OrganizationService],
   exports: [OrganizationService],
