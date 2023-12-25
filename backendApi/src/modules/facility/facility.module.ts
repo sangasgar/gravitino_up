@@ -11,5 +11,6 @@ import { CheckpointModule } from '../checkpoint/checkpoint.module';
   imports: [SequelizeModule.forFeature([Facility]), CheckpointModule, TransactionHistoryModule],
   controllers: [FacilityController],
   providers: [FacilityService],
+  exports: [FacilityService],
 })
 export class FacilityModule { }

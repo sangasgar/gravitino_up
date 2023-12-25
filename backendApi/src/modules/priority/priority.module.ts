@@ -10,5 +10,6 @@ import { TransactionHistoryModule } from '../transaction_history/transaction_his
   imports: [SequelizeModule.forFeature([OrderPriority]), UsersModule, TransactionHistoryModule],
   controllers: [PriorityController],
   providers: [PriorityService],
+  exports: [PriorityService],
 })
 export class PriorityModule { }
