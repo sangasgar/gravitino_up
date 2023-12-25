@@ -24,7 +24,8 @@ export class CreateUserDto {
     phone: string;
 
     @IsInt()
-    person_id: number;
+    @IsOptional()
+    person_id?: number;
 
     @IsInt()
     @ApiProperty({ default: 1 })

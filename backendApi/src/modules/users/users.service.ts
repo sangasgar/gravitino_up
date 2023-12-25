@@ -70,7 +70,7 @@ export class UsersService {
             createPersonDto.gender = user.gender;
             createPersonDto.phone = user.phone;
 
-            const personResult = await this.personRepository.create(user, transactionHost).catch((error) => {
+            const personResult = await this.personRepository.create(createPersonDto, transactionHost).catch((error) => {
                 let errorMessage = error.message;
                 let errorCode = HttpStatus.BAD_REQUEST;
 
