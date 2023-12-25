@@ -1,112 +1,93 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
-import { CreateOrderStatusDto } from './dto/create-order_status.dto';
-import { UpdateOrderStatusDto } from './dto/update-order_status.dto';
+import { CreateOrderStatusDto, UpdateOrderStatusDto } from './dto';
 import { OrderStatus } from './entities/order_status.entity';
 import { InjectModel } from '@nestjs/sequelize';
 import { TransactionHistoryService } from '../transaction_history/transaction_history.service';
-import { Sequelize } from 'sequelize-typescript';
-import { AppError } from 'src/common/constants/error';
-import { AppStrings } from 'src/common/constants/strings';
+import { OrderStatusResponse, StatusOrderStatusResponse } from './response';
 
 @Injectable()
 export class OrderStatusService {
   constructor(
     @InjectModel(OrderStatus) private orderStatusRepository: typeof OrderStatus,
     private readonly historyService: TransactionHistoryService,
-    private readonly sequelize: Sequelize,
   ) { }
 
-  async create(orderStatus: CreateOrderStatusDto, user_id: number) {
-    let result;
-
-    await this.sequelize.transaction(async trx => {
-      const transactionHost = { transaction: trx };
-
-      result = await this.orderStatusRepository.create(orderStatus, transactionHost).catch((error) => {
-        let errorMessage = error.message;
-        let errorCode = HttpStatus.BAD_REQUEST;
-
-        throw new HttpException(errorMessage, errorCode);
-      });
+  async create(orderStatus: CreateOrderStatusDto, user_id: number): Promise<OrderStatusResponse> {
+    try {
+      const newOrderStatus = await this.orderStatusRepository.create(orderStatus);
 
       const historyDto = {
         "user_id": user_id,
-        "comment": `Создан статус заказа #${result.status_id}`,
+        "comment": `Создан статус заказа #${newOrderStatus.status_id}`,
       }
       await this.historyService.create(historyDto);
-    });
 
-    return result;
-  }
-
-  async findAll() {
-    return await this.orderStatusRepository.findAll();
-  }
-
-  async findOne(status_id: number) {
-    const result = await this.orderStatusRepository.findOne({ where: { status_id } });
-
-    if (result == null) {
-      return Promise.reject(
-        {
-          statusCode: 404,
-          message: AppError.ORDER_STATUS_NOT_FOUND
-        }
-      )
-    } else {
-      return result;
+      return newOrderStatus;
+    } catch (error) {
+      throw new Error(error);
     }
   }
 
-  async update(updatedOrderStatus: UpdateOrderStatusDto, user_id: number) {
-    let result;
-
-    await this.sequelize.transaction(async trx => {
-      const transactionHost = { transaction: trx };
-      const foundStatus = await this.orderStatusRepository.findOne({ where: { status_id: updatedOrderStatus.status_id } });
-
-      if (foundStatus == null) {
-        throw new HttpException(AppError.ORDER_STATUS_NOT_FOUND, HttpStatus.BAD_REQUEST);
-      }
-
-      result = await foundStatus.update(updatedOrderStatus, transactionHost).catch((error) => {
-        let errorMessage = error.message;
-        let errorCode = HttpStatus.BAD_REQUEST;
-
-        throw new HttpException(errorMessage, errorCode);
-      });
-
-      const historyDto = {
-        "user_id": user_id,
-        "comment": `Изменен статус заказа #${result.status_id}`,
-      }
-      await this.historyService.create(historyDto);
-    });
-
-    return result;
+  async findAll(): Promise<OrderStatusResponse[]> {
+    try {
+      const foundStatuses = await this.orderStatusRepository.findAll();
+      return foundStatuses;
+    } catch (error) {
+      throw new Error(error);
+    }
   }
 
-  async remove(status_id: number, user_id: number) {
-    await this.sequelize.transaction(async trx => {
+  async findOne(status_id: number): Promise<boolean> {
+    try {
       const result = await this.orderStatusRepository.findOne({ where: { status_id } });
-      if (result == null) {
-        throw new HttpException(AppError.ORDER_STATUS_NOT_FOUND, HttpStatus.NOT_FOUND)
+
+      if (result) {
+        return true;
+      } else {
+        return false;
+      }
+    } catch (error) {
+      throw new Error(error);
+    }
+  }
+
+  async update(updatedOrderStatus: UpdateOrderStatusDto, user_id: number): Promise<OrderStatusResponse> {
+    try {
+      await this.orderStatusRepository.update({ ...updatedOrderStatus }, { where: { status_id: updatedOrderStatus.status_id } });
+
+      const foundOrderStatus = await this.orderStatusRepository.findOne({ where: { status_id: updatedOrderStatus.status_id } });
+
+      if (foundOrderStatus) {
+        const historyDto = {
+          "user_id": user_id,
+          "comment": `Изменен статус заказа #${foundOrderStatus.status_id}`,
+        }
+        await this.historyService.create(historyDto);
       }
 
-      await this.orderStatusRepository.destroy({ where: { status_id }, transaction: trx }).catch((error) => {
-        let errorMessage = error.message;
-        let errorCode = HttpStatus.BAD_REQUEST;
+      return foundOrderStatus;
+    } catch (error) {
+      throw new Error(error);
+    }
+  }
 
-        throw new HttpException(errorMessage, errorCode);
-      });
+  async remove(status_id: number, user_id: number): Promise<StatusOrderStatusResponse> {
+    try {
+      const deleteOrderStatus = await this.orderStatusRepository.destroy({ where: { status_id } });
 
-      const historyDto = {
-        "user_id": user_id,
-        "comment": `Удален статус заказа #${status_id}`,
+      if (deleteOrderStatus) {
+        const historyDto = {
+          "user_id": user_id,
+          "comment": `Удален статус заказа #${status_id}`,
+        }
+        await this.historyService.create(historyDto);
+
+        return { status: true };
       }
-      await this.historyService.create(historyDto);
-    });
 
-    return { statusCode: 200, message: AppStrings.SUCCESS_ROW_DELETE };
+      return { status: false };
+    } catch (error) {
+      throw new Error(error);
+    }
   }
 }

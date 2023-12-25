@@ -1,10 +1,9 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Put, UseGuards, Req } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Put, UseGuards, Req, HttpException, HttpStatus } from '@nestjs/common';
 import { OrderStatusService } from './order_status.service';
-import { CreateOrderStatusDto } from './dto/create-order_status.dto';
-import { UpdateOrderStatusDto } from './dto/update-order_status.dto';
+import { CreateOrderStatusDto, UpdateOrderStatusDto } from './dto';
 import { ApiBearerAuth, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
-import { OrderStatus } from './entities/order_status.entity';
 import { JwtAuthGuard } from 'src/modules/auth/guards/auth.guard';
+import { AppError } from 'src/common/constants/error';
 
 @ApiBearerAuth()
 @ApiTags('order-status')
@@ -16,13 +15,13 @@ export class OrderStatusController {
   @Post()
   @ApiOperation({ summary: 'Создание статуса заказа' })
   @ApiResponse({ status: 201, description: 'Статус заказа успешно создан!' })
-  create(@Body() createOrderStatusDto: CreateOrderStatusDto, @Req() request) {
+  async create(@Body() createOrderStatusDto: CreateOrderStatusDto, @Req() request) {
     return this.orderStatusService.create(createOrderStatusDto, request.user.user_id);
   }
 
   @Get('all')
   @ApiOperation({ summary: 'Получение всех статусов заказа' })
-  findAll() {
+  async findAll() {
     return this.orderStatusService.findAll();
   }
 
@@ -32,7 +31,16 @@ export class OrderStatusController {
   @ApiResponse({ status: 200, description: 'Статус успешно обновлен!' })
   @ApiResponse({ status: 404, description: 'Статус не существует!' })
   @ApiResponse({ status: 403, description: 'Forbidden!' })
-  update(@Body() updateOrderStatusDto: UpdateOrderStatusDto, @Req() request) {
+  async update(@Body() updateOrderStatusDto: UpdateOrderStatusDto, @Req() request) {
+    let foundStatus = null;
+    if (updateOrderStatusDto.status_id) {
+      foundStatus = await this.orderStatusService.findOne(updateOrderStatusDto.status_id);
+    }
+
+    if (!foundStatus) {
+      throw new HttpException(AppError.ORDER_STATUS_NOT_FOUND, HttpStatus.NOT_FOUND);
+    }
+
     return this.orderStatusService.update(updateOrderStatusDto, request.user.user_id);
   }
 
@@ -41,7 +49,11 @@ export class OrderStatusController {
   @ApiOperation({ summary: 'Удаление отдельного статуса заказа' })
   @ApiResponse({ status: 201, description: 'Статус успешно удален!' })
   @ApiResponse({ status: 404, description: 'Статус не существует!' })
-  remove(@Param('id') id: number, @Req() request) {
+  async remove(@Param('id') id: number, @Req() request) {
+    const foundStatus = await this.orderStatusService.findOne(id);
+    if (!foundStatus) {
+      throw new HttpException(AppError.ORDER_STATUS_NOT_FOUND, HttpStatus.NOT_FOUND);
+    }
     return this.orderStatusService.remove(+id, request.user.user_id);
   }
 }

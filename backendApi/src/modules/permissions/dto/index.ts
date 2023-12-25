@@ -2,11 +2,17 @@ import { ApiProperty } from "@nestjs/swagger";
 import { IsString } from "class-validator";
 
 export class CreatePermissionDto {
-    @IsString()
     @ApiProperty()
     permission_id: string;
 
-    @IsString()
     @ApiProperty()
     entity_name: string;
+}
+
+export class UpdatePermissionDto {
+    @ApiProperty()
+    permission_id?: string;
+
+    @ApiProperty()
+    entity_name?: string;
 }

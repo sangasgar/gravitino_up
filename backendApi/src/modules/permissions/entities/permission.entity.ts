@@ -5,8 +5,6 @@ import { RolePermission } from "src/modules/roles_permissions/entities/roles_per
 
 @Table
 export class Permission extends Model<Permission> {
-    // @Column({ type: DataType.INTEGER, allowNull: false, autoIncrement: true, })
-    // permission_id: number;
     @PrimaryKey
     @ApiProperty({ example: 'user-create', description: 'Действие' })
     @Column({ type: DataType.STRING, allowNull: false, unique: true })
