@@ -1,6 +1,5 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
-import { CreateOrganizationDto } from './dto/create-organization.dto';
-import { UpdateOrganizationDto } from './dto/update-organization.dto';
+import { CreateOrganizationDto, UpdateOrganizationDto } from './dto';
 import { Organization } from './entities/organization.entity';
 import { InjectModel } from '@nestjs/sequelize';
 import { OrganizationType } from 'src/modules/organization_type/entities/organization_type.entity';
@@ -8,46 +7,39 @@ import { TransactionHistoryService } from '../transaction_history/transaction_hi
 import { Sequelize } from 'sequelize-typescript';
 import { AppError } from 'src/common/constants/error';
 import { AppStrings } from 'src/common/constants/strings';
+import { OrganizationResponse, StatusOrganizationResponse } from './response';
 
 @Injectable()
 export class OrganizationService {
   constructor(
     @InjectModel(Organization) private organizationRepository: typeof Organization,
-    @InjectModel(OrganizationType) private organizationTypeRepository: typeof OrganizationType,
     private readonly historyService: TransactionHistoryService,
     private readonly sequelize: Sequelize,
   ) { }
 
-  async create(organization: CreateOrganizationDto, user_id: number) {
-    let result;
-
-    await this.sequelize.transaction(async trx => {
-      const transactionHost = { transaction: trx };
-
-      const organizationType = await this.organizationTypeRepository.findOne({ where: { organization_type_id: organization.organization_type_id } });
-      if (organizationType == null) {
-        throw new HttpException(AppError.ORGANIZATION_TYPE_NOT_FOUND, HttpStatus.BAD_REQUEST);
-      }
-
-      result = await this.organizationRepository.create(organization, transactionHost).catch((error) => {
-        let errorMessage = error.message;
-        let errorCode = HttpStatus.BAD_REQUEST;
-
-        throw new HttpException(errorMessage, errorCode);
-      });
+  async create(organization: CreateOrganizationDto, user_id: number): Promise<OrganizationResponse> {
+    try {
+      const newOrganization = await this.organizationRepository.create(organization);
 
       const historyDto = {
         "user_id": user_id,
-        "comment": `Создана организация #${result.organization_id}`,
+        "comment": `Создана организация #${newOrganization.organization_id}`,
       }
       await this.historyService.create(historyDto);
-    });
 
-    return result;
+      return newOrganization;
+    } catch (error) {
+      throw new Error(error);
+    }
   }
 
-  async findAll() {
-    return await this.organizationRepository.findAll({ include: [OrganizationType], attributes: { exclude: ['organization_type_id'] } });
+  async findAll(): Promise<OrganizationResponse[]> {
+    try {
+      const foundOrganization = await this.organizationRepository.findAll({ include: [OrganizationType] });
+      return foundOrganization;
+    } catch (error) {
+      throw new Error(error);
+    }
   }
 
   async findOne(organization_id: number): Promise<boolean> {
@@ -64,62 +56,44 @@ export class OrganizationService {
     }
   }
 
-  async update(updatedOrganization: UpdateOrganizationDto, user_id: number) {
-    let result;
+  async update(updatedOrganization: UpdateOrganizationDto, user_id: number): Promise<OrganizationResponse> {
+    try {
+      let foundOrganization = null;
+      await this.organizationRepository.update({ ...updatedOrganization }, { where: { organization_id: updatedOrganization.organization_id } });
 
-    await this.sequelize.transaction(async trx => {
-      const transactionHost = { transaction: trx };
-      const foundOrganization = await this.organizationRepository.findOne({ where: { organization_id: updatedOrganization.organization_id } });
+      foundOrganization = await this.organizationRepository.findOne({ where: { organization_id: updatedOrganization.organization_id } });
 
-      if (foundOrganization == null) {
-        throw new HttpException(AppError.ORGANIZATION_NOT_FOUND, HttpStatus.NOT_FOUND);
-      }
-
-      if (updatedOrganization.organization_type_id != undefined) {
-        const organizationType = await this.organizationTypeRepository.findOne({ where: { organization_type_id: updatedOrganization.organization_type_id } });
-        if (organizationType == null) {
-          throw new HttpException(AppError.ORGANIZATION_TYPE_NOT_FOUND, HttpStatus.BAD_REQUEST);
+      if (foundOrganization) {
+        const historyDto = {
+          "user_id": user_id,
+          "comment": `Изменена организация #${foundOrganization.organization_id}`,
         }
+        await this.historyService.create(historyDto);
       }
 
-      result = await foundOrganization.update(updatedOrganization, transactionHost).catch((error) => {
-        let errorMessage = error.message;
-        let errorCode = HttpStatus.BAD_REQUEST;
-
-        throw new HttpException(errorMessage, errorCode);
-      });
-
-      const historyDto = {
-        "user_id": user_id,
-        "comment": `Изменена организация #${result.organization_id}`,
-      }
-      await this.historyService.create(historyDto);
-    });
-
-    return result;
+      return foundOrganization;
+    } catch (error) {
+      throw new Error(error);
+    }
   }
 
-  async remove(organization_id: number, user_id: number) {
-    await this.sequelize.transaction(async trx => {
-      const foundOrganization = await this.organizationRepository.findOne({ where: { organization_id } });
-      if (foundOrganization == null) {
-        throw new HttpException(AppError.ORGANIZATION_NOT_FOUND, HttpStatus.BAD_REQUEST);
+  async remove(organization_id: number, user_id: number): Promise<StatusOrganizationResponse> {
+    try {
+      const deleteOrganization = await this.organizationRepository.destroy({ where: { organization_id } });
+
+      if (deleteOrganization) {
+        const historyDto = {
+          "user_id": user_id,
+          "comment": `Удалена организация #${organization_id}`,
+        }
+        await this.historyService.create(historyDto);
+
+        return { status: true };
       }
 
-      await this.organizationRepository.destroy({ where: { organization_id }, transaction: trx }).catch((error) => {
-        let errorMessage = error.message;
-        let errorCode = HttpStatus.BAD_REQUEST;
-
-        throw new HttpException(errorMessage, errorCode);
-      });
-
-      const historyDto = {
-        "user_id": user_id,
-        "comment": `Удалена организация #${organization_id}`,
-      }
-      await this.historyService.create(historyDto);
-    });
-
-    return { statusCode: 200, message: AppStrings.SUCCESS_ROW_DELETE };
+      return { status: false };
+    } catch (error) {
+      throw new Error(error);
+    }
   }
 }
