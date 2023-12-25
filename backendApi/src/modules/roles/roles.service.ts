@@ -1,12 +1,10 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
-import { CreateRoleDto } from './dto/create-role.dto';
-import { UpdateRoleDto } from './dto/update-role.dto';
+import { CreateRoleDto, UpdateRoleDto } from './dto';
 import { Role } from './entities/role.entity';
 import { InjectModel } from '@nestjs/sequelize';
 import { TransactionHistoryService } from '../transaction_history/transaction_history.service';
 import { Sequelize } from 'sequelize-typescript';
-import { AppError } from 'src/common/constants/error';
-import { AppStrings } from 'src/common/constants/strings';
+import { RoleResponse } from './response';
 
 @Injectable()
 export class RolesService {
@@ -16,95 +14,82 @@ export class RolesService {
     private readonly sequelize: Sequelize,
   ) { }
 
-  async create(role: CreateRoleDto, user_id: number) {
-    let result;
-
-    await this.sequelize.transaction(async trx => {
-      const transactionHost = { transaction: trx };
-
-      result = await this.roleRepository.create(role, transactionHost).catch((error) => {
-        let errorMessage = error.message;
-        let errorCode = HttpStatus.BAD_REQUEST;
-
-        throw new HttpException(errorMessage, errorCode);
-      });
+  async create(role: CreateRoleDto, user_id: number): Promise<RoleResponse> {
+    try {
+      const newRole = await this.roleRepository.create(role);
 
       const historyDto = {
         "user_id": user_id,
-        "comment": `Создана роль #${result.organization_type_id}`,
+        "comment": `Создана роль #${newRole.role_id}`,
       }
       await this.historyService.create(historyDto);
-    })
 
-    return result;
+      return newRole;
+    } catch (error) {
+      throw new Error(error);
+    }
   }
 
-  findAll() {
-    return this.roleRepository.findAll();
-  }
-
-  async findOne(role_id: number) {
-    const result = await this.roleRepository.findOne({ where: { role_id } });
-
-    if (result == null) {
-      throw new HttpException(AppError.ROLE_NOT_FOUND, HttpStatus.NOT_FOUND);
-    } else {
+  async findAll(): Promise<RoleResponse[]> {
+    try {
+      const result = this.roleRepository.findAll();
       return result;
+    } catch (error) {
+      throw new Error(error);
+    }
+  }
+
+  async findOne(role_id: number): Promise<boolean> {
+    try {
+      const foundRole = await this.roleRepository.findOne({ where: { role_id } });
+
+      if (foundRole) {
+        return true;
+      } else {
+        return false;
+      }
+    } catch (error) {
+      throw new Error(error);
     }
   }
 
   async update(updatedRole: UpdateRoleDto, user_id: number) {
-    let result;
+    try {
+      await this.roleRepository.update({ ...updatedRole }, { where: { role_id: updatedRole.role_id } });
 
-    await this.sequelize.transaction(async trx => {
-      const transactionHost = { transaction: trx };
+      const foundRole = await this.roleRepository.findOne({ where: { role_id: updatedRole.role_id } });
 
-      const role_id = updatedRole.role_id;
-      const foundRole = await this.roleRepository.findOne({ where: { role_id } });
-
-      if (!foundRole) {
-        throw new HttpException(AppError.ROLE_NOT_FOUND, HttpStatus.NOT_FOUND);
+      if (foundRole) {
+        const historyDto = {
+          "user_id": user_id,
+          "comment": `Изменена роль #${foundRole.role_id}`,
+        }
+        await this.historyService.create(historyDto);
       }
 
-      result = await foundRole.update(updatedRole, transactionHost).catch((error) => {
-        let errorMessage = error.message;
-        let errorCode = HttpStatus.BAD_REQUEST;
-
-        throw new HttpException(errorMessage, errorCode);
-      });
-
-      const historyDto = {
-        "user_id": user_id,
-        "comment": `Изменена роль #${result.organization_type_id}`,
-      }
-      await this.historyService.create(historyDto);
-    })
-
-    return result;
+      return foundRole;
+    } catch (error) {
+      throw new Error(error);
+    }
   }
 
   async remove(role_id: number, user_id: number) {
-    await this.sequelize.transaction(async trx => {
-      const result = await this.roleRepository.findOne({ where: { role_id } });
+    try {
+      const deleteRole = await this.roleRepository.destroy({ where: { role_id } });
 
-      if (!result) {
-        throw new HttpException(AppError.ROLE_NOT_FOUND, HttpStatus.NOT_FOUND);
+      if (deleteRole) {
+        const historyDto = {
+          "user_id": user_id,
+          "comment": `Удалена роль #${role_id}`,
+        }
+        await this.historyService.create(historyDto);
+
+        return { status: true };
       }
 
-      await this.roleRepository.destroy({ where: { role_id }, transaction: trx }).catch((error) => {
-        let errorMessage = error.message;
-        let errorCode = HttpStatus.BAD_REQUEST;
-
-        throw new HttpException(errorMessage, errorCode);
-      });
-
-      const historyDto = {
-        "user_id": user_id,
-        "comment": `Удалена роль #${result.role_id}`,
-      }
-      await this.historyService.create(historyDto);
-    })
-
-    return { statusCode: 200, message: AppStrings.SUCCESS_ROW_DELETE };
+      return { status: false };
+    } catch (error) {
+      throw new Error(error);
+    }
   }
 }

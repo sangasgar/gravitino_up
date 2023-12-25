@@ -1,11 +1,8 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { CreatePermissionDto, UpdatePermissionDto } from './dto';
-import { Sequelize } from 'sequelize-typescript';
 import { Permission } from './entities/permission.entity';
 import { InjectModel } from '@nestjs/sequelize';
 import { TransactionHistoryService } from '../transaction_history/transaction_history.service';
-import { AppError } from 'src/common/constants/error';
-import { AppStrings } from 'src/common/constants/strings';
 import { PermissionResponse, StatusPermissionResponse } from './response';
 
 @Injectable()
