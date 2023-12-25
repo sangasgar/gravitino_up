@@ -1,9 +1,9 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Req } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Req, HttpException, HttpStatus } from '@nestjs/common';
 import { OrganizationTypeService } from './organization_type.service';
-import { CreateOrganizationTypeDto } from './dto/create-organization_type.dto';
-import { UpdateOrganizationTypeDto } from './dto/update-organization_type.dto';
+import { CreateOrganizationTypeDto, UpdateOrganizationTypeDto } from './dto';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { JwtAuthGuard } from 'src/modules/auth/guards/auth.guard';
+import { AppError } from 'src/common/constants/error';
 
 @ApiBearerAuth()
 @ApiTags('organization-type')
@@ -22,16 +22,28 @@ export class OrganizationTypeController {
     return this.organizationTypeService.findAll();
   }
 
-
   @UseGuards(JwtAuthGuard)
   @Patch()
-  update(@Body() updateOrganizationTypeDto: UpdateOrganizationTypeDto, @Req() request) {
+  async update(@Body() updateOrganizationTypeDto: UpdateOrganizationTypeDto, @Req() request) {
+    let foundOrganizationType = null;
+    if (updateOrganizationTypeDto.organization_type_id) {
+      foundOrganizationType = await this.organizationTypeService.findOne(updateOrganizationTypeDto.organization_type_id);
+    }
+    if (!foundOrganizationType) {
+      throw new HttpException(AppError.ORGANIZATION_TYPE_NOT_FOUND, HttpStatus.NOT_FOUND);
+    }
+
     return this.organizationTypeService.update(updateOrganizationTypeDto, request.user.user_id);
   }
 
   @UseGuards(JwtAuthGuard)
   @Delete(':id')
-  remove(@Param('id') id: number, @Req() request) {
+  async remove(@Param('id') id: number, @Req() request) {
+    const foundOrganizationType = await this.organizationTypeService.findOne(id);
+    if (!foundOrganizationType) {
+      throw new HttpException(AppError.ORGANIZATION_TYPE_NOT_FOUND, HttpStatus.NOT_FOUND);
+    }
+
     return this.organizationTypeService.remove(+id, request.user.user_id);
   }
 }

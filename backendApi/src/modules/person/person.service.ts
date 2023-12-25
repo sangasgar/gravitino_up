@@ -1,11 +1,8 @@
 import { HttpStatus, Injectable } from '@nestjs/common';
-import { CreatePersonDto } from './dto/create-person.dto';
-import { UpdatePersonDto } from './dto/update-person.dto';
+import { CreatePersonDto, UpdatePersonDto } from './dto';
 import { InjectModel } from '@nestjs/sequelize';
-import { User } from 'src/modules/users/entities/user.entity';
 import { Person } from './entities/person.entity';
-import { AppError } from 'src/common/constants/error';
-import { AppStrings } from 'src/common/constants/strings';
+import { PersonResponse, StatusPersonResponse } from './response';
 
 @Injectable()
 export class PersonService {
@@ -13,61 +10,57 @@ export class PersonService {
     @InjectModel(Person) private personRepository: typeof Person,
   ) { }
 
-  async create(person: CreatePersonDto) {
-    var newPerson = await this.personRepository.create(person);
-    return newPerson;
+  async create(person: CreatePersonDto): Promise<PersonResponse> {
+    try {
+      var newPerson = await this.personRepository.create(person);
+      return newPerson;
+    } catch (error) {
+      throw new Error(error);
+    }
   }
 
-  async findAll() {
-    return await this.personRepository.findAll();
+  async findAll(): Promise<PersonResponse[]> {
+    try {
+      const foundPerson = await this.personRepository.findAll();
+      return foundPerson;
+    } catch (error) {
+      throw new Error(error);
+    }
   }
 
-  async findOne(person_id: number) {
-    const result = await this.personRepository.findOne({ where: { person_id } });
+  async findOne(person_id: number): Promise<boolean> {
+    try {
+      const result = await this.personRepository.findOne({ where: { person_id } });
 
-    if (result == null) {
-      return Promise.reject(
-        {
-          statusCode: HttpStatus.NOT_FOUND,
-          message: AppError.PERSON_NOT_FOUND
-        }
-      )
-    } else {
-      return result;
+      if (result) {
+        return true;
+      } else {
+        return false;
+      }
+    } catch (error) {
+      throw new Error(error);
     }
   }
 
   async update(updatedPerson: UpdatePersonDto) {
-    const person_id = updatedPerson.person_id;
-    const foundPerson = await this.personRepository.findOne({ where: { person_id } });
-
-    if (foundPerson == null) {
-      return Promise.reject(
-        {
-          statusCode: HttpStatus.NOT_FOUND,
-          message: AppError.PERSON_NOT_FOUND
-        }
-      )
+    try {
+      await this.personRepository.update({ ...updatedPerson }, { where: { person_id: updatedPerson.person_id } });
+    } catch (error) {
+      throw new Error(error);
     }
-
-    await foundPerson.update(updatedPerson);
-
-    return updatedPerson;
   }
 
-  async remove(person_id: number) {
-    const foundPerson = await this.personRepository.findOne({ where: { person_id } });
+  async remove(person_id: number): Promise<StatusPersonResponse> {
+    try {
+      const deletePerson = await this.personRepository.destroy({ where: { person_id } });
 
-    if (foundPerson == null) {
-      return Promise.reject(
-        {
-          statusCode: HttpStatus.NOT_FOUND,
-          message: AppError.PERSON_NOT_FOUND
-        }
-      )
-    } else {
-      await this.personRepository.destroy({ where: { person_id } });
-      return { statusCode: 200, message: AppStrings.SUCCESS_ROW_DELETE };
+      if (deletePerson) {
+        return { status: true };
+      }
+
+      return { status: false };
+    } catch (error) {
+      throw new Error(error);
     }
   }
 }

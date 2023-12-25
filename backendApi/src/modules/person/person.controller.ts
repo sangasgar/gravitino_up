@@ -1,4 +1,4 @@
-import { Controller, Get, Param, UseGuards } from '@nestjs/common';
+import { Controller, Get } from '@nestjs/common';
 import { PersonService } from './person.service';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 
@@ -11,10 +11,5 @@ export class PersonController {
   @Get('all')
   findAll() {
     return this.personService.findAll();
-  }
-
-  @Get(':id')
-  findOne(@Param('id') id: number) {
-    return this.personService.findOne(+id);
   }
 }

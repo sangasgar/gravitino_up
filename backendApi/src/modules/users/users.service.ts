@@ -8,8 +8,7 @@ import { Organization } from 'src/modules/organization/entities/organization.ent
 import { InjectModel } from '@nestjs/sequelize';
 import { PersonService } from 'src/modules/person/person.service';
 import { Person } from 'src/modules/person/entities/person.entity';
-import { CreatePersonDto } from 'src/modules/person/dto/create-person.dto';
-import { UpdatePersonDto } from 'src/modules/person/dto/update-person.dto';
+import { CreatePersonDto, UpdatePersonDto } from 'src/modules/person/dto';
 import { Group } from 'src/modules/group/entities/group.entity';
 import { Sequelize } from 'sequelize-typescript';
 import { TransactionHistoryService } from '../transaction_history/transaction_history.service';

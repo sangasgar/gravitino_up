@@ -1,7 +1,11 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { IsOptional, IsString } from "class-validator";
+import { IsBoolean, IsInt, IsString } from "class-validator";
 
-export class CreatePersonDto {
+export class PersonResponse {
+    @IsInt()
+    @ApiProperty()
+    person_id: number;
+
     @IsString()
     @ApiProperty()
     last_name: string;
@@ -11,7 +15,6 @@ export class CreatePersonDto {
     first_name: string;
 
     @IsString()
-    @IsOptional()
     @ApiProperty()
     patronymic: string;
 
@@ -22,4 +25,10 @@ export class CreatePersonDto {
     @IsString()
     @ApiProperty()
     phone: string;
+}
+
+export class StatusPersonResponse {
+    @IsBoolean()
+    @ApiProperty()
+    status: boolean;
 }
