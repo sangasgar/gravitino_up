@@ -9,5 +9,6 @@ import { TransactionHistoryModule } from '../transaction_history/transaction_his
   imports: [SequelizeModule.forFeature([Permission]), TransactionHistoryModule],
   controllers: [PermissionsController],
   providers: [PermissionsService],
+  exports: [PermissionsService],
 })
 export class PermissionsModule { }

@@ -9,5 +9,6 @@ import { TransactionHistoryModule } from '../transaction_history/transaction_his
   imports: [SequelizeModule.forFeature([OrderStatus]), TransactionHistoryModule],
   controllers: [OrderStatusController],
   providers: [OrderStatusService],
+  exports: [OrderStatusService],
 })
 export class OrderStatusModule { }

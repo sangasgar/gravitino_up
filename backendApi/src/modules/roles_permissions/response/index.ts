@@ -1,7 +1,11 @@
 import { ApiProperty } from "@nestjs/swagger";
 import { IsBoolean, IsInt, IsString } from "class-validator";
 
-export class CreateRolesPermissionDto {
+export class RolePermissionResponse {
+    @IsInt()
+    @ApiProperty()
+    role_permission_id: number;
+
     @IsInt()
     @ApiProperty()
     role_id: number;
@@ -13,4 +17,10 @@ export class CreateRolesPermissionDto {
     @IsBoolean()
     @ApiProperty()
     rights: boolean;
+}
+
+export class StatusRolePermissionResponse {
+    @IsBoolean()
+    @ApiProperty()
+    status: boolean;
 }

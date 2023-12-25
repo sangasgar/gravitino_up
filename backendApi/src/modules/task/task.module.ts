@@ -10,5 +10,6 @@ import { CategoryModule } from '../category/category.module';
   imports: [SequelizeModule.forFeature([Task]), CategoryModule, TransactionHistoryModule],
   controllers: [TaskController],
   providers: [TaskService],
+  exports: [TaskService],
 })
 export class TaskModule { }
