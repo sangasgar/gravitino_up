@@ -27,7 +27,6 @@ export class FacilityService {
     } catch (error) {
       throw new Error(error);
     }
-
   }
 
   async findAll(): Promise<FacilityResponse[]> {
