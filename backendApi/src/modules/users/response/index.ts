@@ -1,7 +1,11 @@
-import { ApiProperty } from '@nestjs/swagger';
-import { IsInt, IsOptional, IsString } from 'class-validator';
+import { ApiProperty } from "@nestjs/swagger";
+import { IsArray, IsBoolean, IsInt, IsString } from "class-validator";
 
-export class CreateUserDto {
+export class UserResponse {
+    @IsInt()
+    @ApiProperty()
+    user_id: number;
+
     @IsString()
     @ApiProperty()
     last_name: string;
@@ -11,9 +15,8 @@ export class CreateUserDto {
     first_name: string;
 
     @IsString()
-    @IsOptional()
     @ApiProperty()
-    patronymic: string;
+    patronymic?: string;
 
     @IsString()
     @ApiProperty()
@@ -24,10 +27,6 @@ export class CreateUserDto {
     phone: string;
 
     @IsInt()
-    @IsOptional()
-    person_id?: number;
-
-    @IsInt()
     @ApiProperty({ default: 1 })
     organization_id: number;
 
@@ -36,7 +35,6 @@ export class CreateUserDto {
     role_id: number;
 
     @IsInt()
-    @IsOptional()
     @ApiProperty({ default: 1 })
     group_id: number;
 
@@ -47,4 +45,10 @@ export class CreateUserDto {
     @IsString()
     @ApiProperty()
     password: string;
+}
+
+export class StatusUserResponse {
+    @IsBoolean()
+    @ApiProperty()
+    status: boolean;
 }

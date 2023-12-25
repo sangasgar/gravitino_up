@@ -13,7 +13,7 @@ import { PersonModule } from '../person/person.module';
 import { TransactionHistoryModule } from '../transaction_history/transaction_history.module';
 
 @Module({
-    imports: [SequelizeModule.forFeature([User, Role, Organization, Group, TransactionHistory, RolePermission, Person]), PersonModule, TransactionHistoryModule],
+    imports: [SequelizeModule.forFeature([User, Role, Organization, Group, RolePermission, Person]), TransactionHistoryModule],
     controllers: [UsersController],
     providers: [UsersService],
     exports: [UsersService],
