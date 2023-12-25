@@ -3,14 +3,12 @@ import { TaskService } from './task.service';
 import { TaskController } from './task.controller';
 import { SequelizeModule } from '@nestjs/sequelize';
 import { Task } from './entities/task.entity';
-import { Category } from 'src/modules/category/entities/category.entity';
-import { TransactionHistory } from '../transaction_history/entities/transaction_history.entity';
-import { User } from '../users/entities/user.entity';
-import { TransactionHistoryService } from '../transaction_history/transaction_history.service';
+import { TransactionHistoryModule } from '../transaction_history/transaction_history.module';
+import { CategoryModule } from '../category/category.module';
 
 @Module({
-  imports: [SequelizeModule.forFeature([Task, Category, User, TransactionHistory])],
+  imports: [SequelizeModule.forFeature([Task]), CategoryModule, TransactionHistoryModule],
   controllers: [TaskController],
-  providers: [TaskService, TransactionHistoryService],
+  providers: [TaskService],
 })
 export class TaskModule { }

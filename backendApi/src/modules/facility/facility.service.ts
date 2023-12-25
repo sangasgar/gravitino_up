@@ -14,15 +14,20 @@ export class FacilityService {
   ) { }
 
   async create(facility: CreateFacilityDto, user_id: number): Promise<FacilityResponse> {
-    const newFacility = await this.facilityRepository.create(facility);
+    try {
+      const newFacility = await this.facilityRepository.create(facility);
 
-    const historyDto = {
-      "user_id": user_id,
-      "comment": `Создан объект обслуживания #${newFacility.facility_id}`,
+      const historyDto = {
+        "user_id": user_id,
+        "comment": `Создан объект обслуживания #${newFacility.facility_id}`,
+      }
+      await this.historyService.create(historyDto);
+
+      return newFacility;
+    } catch (error) {
+      throw new Error(error);
     }
-    await this.historyService.create(historyDto);
 
-    return newFacility;
   }
 
   async findAll(): Promise<FacilityResponse[]> {
@@ -50,10 +55,9 @@ export class FacilityService {
 
   async update(updatedFacility: UpdateFacilityDto, user_id: number): Promise<FacilityResponse> {
     try {
-      let foundFacility = null;
       await this.facilityRepository.update({ ...updatedFacility }, { where: { checkpoint_id: updatedFacility.facility_id } });
 
-      foundFacility = await this.facilityRepository.findOne({ where: { checkpoint_id: updatedFacility.facility_id } });
+      const foundFacility = await this.facilityRepository.findOne({ where: { checkpoint_id: updatedFacility.facility_id } });
 
       if (foundFacility) {
         const historyDto = {
@@ -70,18 +74,22 @@ export class FacilityService {
   }
 
   async remove(facility_id: number, user_id: number): Promise<StatusFacilityResponse> {
-    const deleteFacility = await this.facilityRepository.destroy({ where: { facility_id } });
+    try {
+      const deleteFacility = await this.facilityRepository.destroy({ where: { facility_id } });
 
-    if (deleteFacility) {
-      const historyDto = {
-        "user_id": user_id,
-        "comment": `Удален объект обслуживания #${facility_id}`,
+      if (deleteFacility) {
+        const historyDto = {
+          "user_id": user_id,
+          "comment": `Удален объект обслуживания #${facility_id}`,
+        }
+        await this.historyService.create(historyDto);
+
+        return { status: true };
       }
-      await this.historyService.create(historyDto);
 
-      return { status: true };
+      return { status: false };
+    } catch (error) {
+      throw new Error(error);
     }
-
-    return { status: false };
   }
 }

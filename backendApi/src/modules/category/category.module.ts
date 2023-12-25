@@ -9,5 +9,6 @@ import { TransactionHistoryModule } from '../transaction_history/transaction_his
   imports: [SequelizeModule.forFeature([Category]), TransactionHistoryModule],
   controllers: [CategoryController],
   providers: [CategoryService],
+  exports: [CategoryService],
 })
 export class CategoryModule { }

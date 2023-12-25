@@ -1,7 +1,11 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { IsOptional, IsString } from "class-validator";
+import { IsBoolean, IsString } from "class-validator";
 
-export class CreateTaskDto {
+export class TaskResponse {
+    @IsString()
+    @ApiProperty()
+    task_id: number;
+
     @IsString()
     @ApiProperty()
     work_type: string;
@@ -11,17 +15,20 @@ export class CreateTaskDto {
     category_id: number;
 
     @IsString()
-    @IsOptional()
     @ApiProperty()
     work_type_description: string;
 
     @IsString()
-    @IsOptional()
     @ApiProperty()
     task_description: string;
 
     @IsString()
-    @IsOptional()
     @ApiProperty()
     area: string;
+}
+
+export class StatusTaskResponse {
+    @IsBoolean()
+    @ApiProperty()
+    status: boolean;
 }
