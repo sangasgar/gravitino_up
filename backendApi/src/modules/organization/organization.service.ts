@@ -14,7 +14,6 @@ export class OrganizationService {
   constructor(
     @InjectModel(Organization) private organizationRepository: typeof Organization,
     private readonly historyService: TransactionHistoryService,
-    private readonly sequelize: Sequelize,
   ) { }
 
   async create(organization: CreateOrganizationDto, user_id: number): Promise<OrganizationResponse> {

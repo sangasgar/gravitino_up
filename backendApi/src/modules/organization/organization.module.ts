@@ -10,7 +10,7 @@ import { OrganizationTypeModule } from '../organization_type/organization_type.m
 import { UsersModule } from '../users/users.module';
 
 @Module({
-  imports: [SequelizeModule.forFeature([Organization]), TransactionHistoryModule, OrganizationTypeModule, UsersModule],
+  imports: [SequelizeModule.forFeature([Organization]), TransactionHistoryModule, OrganizationTypeModule],
   controllers: [OrganizationController],
   providers: [OrganizationService],
   exports: [OrganizationService],

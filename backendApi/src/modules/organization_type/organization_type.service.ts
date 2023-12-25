@@ -90,6 +90,5 @@ export class OrganizationTypeService {
     } catch (error) {
       throw new Error(error);
     }
-
   }
 }

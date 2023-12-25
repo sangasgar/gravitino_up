@@ -18,13 +18,11 @@ export class TransactionHistoryController {
   @UseGuards(JwtAuthGuard)
   @Post()
   async create(@Body() createTransactionHistoryDto: CreateTransactionHistoryDto) {
-    let foundUser = null;
     if (createTransactionHistoryDto.user_id) {
-      foundUser = await this.userService.findOne(createTransactionHistoryDto.user_id);
-    }
-
-    if (!foundUser) {
-      throw new HttpException(AppError.USER_NOT_FOUND, HttpStatus.BAD_REQUEST);
+      const foundUser = await this.userService.findOne(createTransactionHistoryDto.user_id);
+      if (!foundUser) {
+        throw new HttpException(AppError.USER_NOT_FOUND, HttpStatus.NOT_FOUND);
+      }
     }
 
     return this.transactionHistoryService.create(createTransactionHistoryDto);
@@ -47,12 +45,11 @@ export class TransactionHistoryController {
       throw new HttpException(AppError.TRANSACTION_HISTORY_NOT_FOUND, HttpStatus.NOT_FOUND);
     }
 
-    let foundUser = null;
     if (updateTransactionHistoryDto.user_id) {
-      foundUser = await this.userService.findOne(updateTransactionHistoryDto.user_id);
-    }
-    if (!foundUser) {
-      throw new HttpException(AppError.USER_NOT_FOUND, HttpStatus.BAD_REQUEST);
+      const foundUser = await this.userService.findOne(updateTransactionHistoryDto.user_id);
+      if (!foundUser) {
+        throw new HttpException(AppError.USER_NOT_FOUND, HttpStatus.NOT_FOUND);
+      }
     }
 
     return this.transactionHistoryService.update(updateTransactionHistoryDto);

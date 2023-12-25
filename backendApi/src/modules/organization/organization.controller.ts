@@ -20,12 +20,11 @@ export class OrganizationController {
   @ApiOperation({ summary: 'Создание новой организации' })
   @ApiResponse({ status: 201, description: 'Организация успешно создана!' })
   async create(@Body() createOrganizationDto: CreateOrganizationDto, @Req() request) {
-    let foundOrganizationType = null;
     if (createOrganizationDto.organization_type_id) {
-      foundOrganizationType = await this.organizationTypeService.findOne(createOrganizationDto.organization_type_id);
-    }
-    if (!foundOrganizationType) {
-      throw new HttpException(AppError.ORGANIZATION_TYPE_NOT_FOUND, HttpStatus.NOT_FOUND);
+      const foundOrganizationType = await this.organizationTypeService.findOne(createOrganizationDto.organization_type_id);
+      if (!foundOrganizationType) {
+        throw new HttpException(AppError.ORGANIZATION_TYPE_NOT_FOUND, HttpStatus.NOT_FOUND);
+      }
     }
 
     return this.organizationService.create(createOrganizationDto, request.user.user_id);
@@ -53,13 +52,13 @@ export class OrganizationController {
       throw new HttpException(AppError.ORGANIZATION_NOT_FOUND, HttpStatus.NOT_FOUND);
     }
 
-    let foundOrganizationType = null;
     if (updateOrganizationDto.organization_type_id) {
-      foundOrganizationType = await this.organizationTypeService.findOne(updateOrganizationDto.organization_type_id);
+      const foundOrganizationType = await this.organizationTypeService.findOne(updateOrganizationDto.organization_type_id);
+      if (!foundOrganizationType) {
+        throw new HttpException(AppError.ORGANIZATION_TYPE_NOT_FOUND, HttpStatus.NOT_FOUND);
+      }
     }
-    if (!foundOrganizationType) {
-      throw new HttpException(AppError.ORGANIZATION_TYPE_NOT_FOUND, HttpStatus.NOT_FOUND);
-    }
+
 
     return this.organizationService.update(updateOrganizationDto, request.user.user_id);
   }

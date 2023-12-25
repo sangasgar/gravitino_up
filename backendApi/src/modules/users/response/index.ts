@@ -36,7 +36,7 @@ export class UserResponse {
 
     @IsInt()
     @ApiProperty({ default: 1 })
-    group_id: number;
+    group_id?: number;
 
     @IsString()
     @ApiProperty()

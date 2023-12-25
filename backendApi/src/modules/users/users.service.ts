@@ -12,49 +12,22 @@ import { Sequelize } from 'sequelize-typescript';
 import { TransactionHistoryService } from '../transaction_history/transaction_history.service';
 import { RolePermission } from '../roles_permissions/entities/roles_permission.entity';
 import { AppError } from 'src/common/constants/error';
-import { AppStrings } from 'src/common/constants/strings';
 import { Op } from 'sequelize';
+import { StatusUserResponse, UserResponse } from './response';
 
 @Injectable()
 export class UsersService {
     constructor(
         @InjectModel(User) private userRepository: typeof User,
         @InjectModel(Person) private personRepository: typeof Person,
-        @InjectModel(Role) private roleRepository: typeof Role,
         @InjectModel(RolePermission) private rolePermissionRepository: typeof RolePermission,
-        @InjectModel(Organization) private organizationRepository: typeof Organization,
-        @InjectModel(Group) private groupRepository: typeof Group,
         private readonly historyService: TransactionHistoryService,
         private sequelize: Sequelize,
     ) { }
 
-    async create(user: CreateUserDto) {
-        let result;
-
-        await this.sequelize.transaction(async trx => {
-            const transactionHost = { transaction: trx };
-
-            const role_id = user.role_id;
-            const role = await this.roleRepository.findOne({ where: { role_id } })
-
-            if (!role) {
-                throw new HttpException(AppError.ROLE_NOT_FOUND, HttpStatus.BAD_REQUEST);
-            }
-
-            const organization_id = user.organization_id;
-            const organization = await this.organizationRepository.findOne({ where: { organization_id } });
-
-            if (!organization) {
-                throw new HttpException(AppError.ORGANIZATION_NOT_FOUND, HttpStatus.BAD_REQUEST);
-            }
-
-            if (user.group_id != undefined) {
-                const group = await this.groupRepository.findOne({ where: { group_id: user.group_id } });
-
-                if (group == null) {
-                    throw new HttpException(AppError.GROUP_NOT_FOUND, HttpStatus.BAD_REQUEST);
-                }
-            }
+    async create(user: CreateUserDto): Promise<UserResponse> {
+        try {
+            const transaction = await this.sequelize.transaction();
 
             const login = user.login.toLowerCase();
             user.login = login;
@@ -67,16 +40,10 @@ export class UsersService {
             createPersonDto.gender = user.gender;
             createPersonDto.phone = user.phone;
 
-            const personResult = await this.personRepository.create(createPersonDto, transactionHost).catch((error) => {
-                let errorMessage = error.message;
-                let errorCode = HttpStatus.BAD_REQUEST;
+            const newPerson = await this.personRepository.create(createPersonDto, { transaction: transaction });
 
-                throw new HttpException(errorMessage, errorCode);
-            });
-
-            user.person_id = personResult.dataValues.person_id;
-
-            result = await this.userRepository.create(user, transactionHost).catch((error) => {
+            user.person_id = newPerson.person_id;
+            const newUser = await this.userRepository.create(user, { transaction: transaction }).catch((error) => {
                 let errorMessage = error.message;
                 let errorCode = HttpStatus.BAD_REQUEST;
                 if (error.original.code === "23505") {
@@ -87,50 +54,30 @@ export class UsersService {
                 throw new HttpException(errorMessage, errorCode);
             });
 
+            await transaction.commit();
+
             const historyDto = {
-                "user_id": result.user_id,
-                "comment": `Создан пользователь #${result.user_id}`,
+                "user_id": newUser.user_id,
+                "comment": `Создан пользователь #${newUser.user_id} (person_id: ${newUser.person_id})`,
             }
             await this.historyService.create(historyDto);
-        })
 
-        return result;
+            return {
+                user_id: newUser.user_id,
+                ...user,
+            };
+        } catch (error) {
+            if (error.code === 409) {
+                throw new Error(error.message);
+            } else {
+                throw new Error(error);
+            }
+        }
     }
 
-    async update(updatedUser: UpdateUserDto, user_id: number) {
-        let result;
-
-        await this.sequelize.transaction(async trx => {
-            const transactionHost = { transaction: trx };
-
-            const id = updatedUser.user_id;
-            const foundUser = await this.userRepository.findOne({ where: { user_id: id }, include: [Person, Group] });
-
-            if (foundUser == null) {
-                throw new HttpException(AppError.USER_NOT_FOUND, HttpStatus.NOT_FOUND);
-            }
-
-            if (updatedUser.role_id != undefined) {
-                const role = await this.roleRepository.findOne({ where: { role_id: updatedUser.role_id } });
-                if (role == null) {
-                    throw new HttpException(AppError.ROLE_NOT_FOUND, HttpStatus.BAD_REQUEST);
-                }
-            }
-
-            if (updatedUser.organization_id != undefined) {
-                const organization = await this.organizationRepository.findOne({ where: { organization_id: updatedUser.organization_id } });
-                if (organization == null) {
-                    throw new HttpException(AppError.ORGANIZATION_NOT_FOUND, HttpStatus.BAD_REQUEST);
-                }
-            }
-
-            if (updatedUser.group_id != undefined) {
-                const group = await this.groupRepository.findOne({ where: { group_id: updatedUser.group_id } });
-
-                if (group == null) {
-                    throw new HttpException(AppError.GROUP_NOT_FOUND, HttpStatus.BAD_REQUEST);
-                }
-            }
+    async update(updatedUser: UpdateUserDto, user_id: number): Promise<UserResponse> {
+        try {
+            const transaction = await this.sequelize.transaction();
 
             if (updatedUser.login != undefined) {
                 const login = updatedUser.login.toLowerCase();
@@ -141,9 +88,9 @@ export class UsersService {
                 updatedUser.password = await bcrypt.hash(updatedUser.password, 10);
             }
 
-            const person_id = foundUser.person.person_id;
+            const user = await this.findById(updatedUser.user_id);
+            const person_id = user.person.person_id;
             const foundPerson = await this.personRepository.findOne({ where: { person_id } });
-
             if (foundPerson == null) {
                 throw new HttpException(AppError.PERSON_NOT_FOUND, HttpStatus.BAD_REQUEST);
             }
@@ -154,38 +101,41 @@ export class UsersService {
             updatePersonDto.patronymic = updatedUser.patronymic;
             updatePersonDto.gender = updatedUser.gender;
 
-            await foundPerson.update(updatePersonDto, transactionHost).catch((error) => {
-                let errorMessage = error.message;
-                let errorCode = HttpStatus.BAD_REQUEST;
+            await foundPerson.update(updatePersonDto, { transaction: transaction })
 
-                throw new HttpException(errorMessage, errorCode);
-            });
+            let foundUser = null;
+            await this.userRepository.update({ ...updatedUser }, { where: { user_id: updatedUser.user_id }, transaction: transaction });
 
-            result = await foundUser.update(updatedUser, transactionHost).catch((error) => {
-                let errorMessage = error.message;
-                let errorCode = HttpStatus.BAD_REQUEST;
-                if (error.original.code === "23505") {
-                    errorMessage = AppError.USER_LOGIN_EXISTS;
-                    errorCode = HttpStatus.CONFLICT;
+            foundUser = await this.userRepository.findOne({ where: { user_id: updatedUser.user_id } });
+
+            if (foundUser) {
+                const historyDto = {
+                    "user_id": user_id,
+                    "comment": `Изменен пользователь #${foundUser.user_id}`,
                 }
-
-                throw new HttpException(errorMessage, errorCode);
-            });
-
-            const historyDto = {
-                "user_id": user_id,
-                "comment": `Изменен пользователь #${result.user_id}`,
+                await this.historyService.create(historyDto);
             }
-            await this.historyService.create(historyDto);
-        })
 
-        return result;
+            await transaction.commit();
+
+            return foundUser;
+        } catch (error) {
+            throw new Error(error);
+        }
     }
 
-    async findAll(): Promise<User[]> {
-        const result = await this.userRepository.findAll({ include: [Role, Organization, Person, Group], attributes: { exclude: ['password', 'organization_id', 'role_id', 'person_id', 'group_id'] } })
-
-        return result;
+    async findAll() {
+        try {
+            const foundUsers = await this.userRepository.findAll(
+                {
+                    include: [Role, Organization, Person, Group],
+                    attributes: { exclude: ['password', 'organization_id', 'role_id', 'person_id', 'group_id'] }
+                }
+            );
+            return foundUsers;
+        } catch (error) {
+            throw new Error(error);
+        }
     }
 
     async findOne(user_id: number): Promise<boolean> {
@@ -247,40 +197,30 @@ export class UsersService {
         }
     }
 
-    async remove(id: number, user_id: number) {
-        await this.sequelize.transaction(async trx => {
-            const result = await this.userRepository.findOne({ where: { user_id: id }, include: [Person], attributes: { exclude: ['password', 'organization_id', 'role_id', 'person_id', 'group_id'] } });
+    async remove(id: number, user_id: number): Promise<StatusUserResponse> {
+        try {
+            const transaction = await this.sequelize.transaction();
 
-            if (result == null) {
-                return Promise.reject(
-                    {
-                        statusCode: HttpStatus.NOT_FOUND,
-                        message: AppError.USER_NOT_FOUND
-                    }
-                )
+            const user = await this.userRepository.findOne({ where: { user_id: id }, attributes: { exclude: ['password'] } });
+
+            const deleteUser = await this.userRepository.destroy({ where: { user_id: id }, transaction: transaction });
+            const deletePerson = await this.personRepository.destroy({ where: { person_id: user.person_id }, transaction: transaction });
+
+            if (deleteUser && deletePerson) {
+                const historyDto = {
+                    "user_id": user_id,
+                    "comment": `Удален пользователь #${id}`,
+                }
+                await this.historyService.create(historyDto);
+
+                await transaction.commit();
+
+                return { status: true };
             }
 
-            const person_id = result.person.person_id;
-            await this.userRepository.destroy({ where: { user_id: id }, transaction: trx }).catch((error) => {
-                let errorMessage = error.message;
-                let errorCode = HttpStatus.BAD_REQUEST;
-
-                throw new HttpException(errorMessage, errorCode);
-            });
-            await this.personRepository.destroy({ where: { person_id }, transaction: trx }).catch((error) => {
-                let errorMessage = error.message;
-                let errorCode = HttpStatus.BAD_REQUEST;
-
-                throw new HttpException(errorMessage, errorCode);
-            });
-
-            const historyDto = {
-                "user_id": user_id,
-                "comment": `Удален пользователь #${id}`,
-            }
-            await this.historyService.create(historyDto);
-        });
-
-        return { statusCode: 200, message: AppStrings.SUCCESS_ROW_DELETE };
+            return { status: false };
+        } catch (error) {
+            throw new Error(error);
+        }
     }
 }
