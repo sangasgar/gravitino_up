@@ -7,8 +7,9 @@ import { UsersModule } from '../users/users.module';
 import { TransactionHistoryModule } from '../transaction_history/transaction_history.module';
 
 @Module({
-  imports: [SequelizeModule.forFeature([OrganizationType]), UsersModule, TransactionHistoryModule],
+  imports: [SequelizeModule.forFeature([OrganizationType]), TransactionHistoryModule],
   controllers: [OrganizationTypeController],
   providers: [OrganizationTypeService],
+  exports: [OrganizationTypeService],
 })
 export class OrganizationTypeModule { }

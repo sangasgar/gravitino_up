@@ -1,12 +1,10 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { User } from './entities/user.entity';
-import { CreateUserDto } from './dto/create-user.dto';
+import { CreateUserDto, UpdateUserDto } from './dto';
 import { Role } from 'src/modules/roles/entities/role.entity';
 import * as bcrypt from 'bcrypt';
-import { UpdateUserDto } from './dto/update-user.dto';
 import { Organization } from 'src/modules/organization/entities/organization.entity';
 import { InjectModel } from '@nestjs/sequelize';
-import { PersonService } from 'src/modules/person/person.service';
 import { Person } from 'src/modules/person/entities/person.entity';
 import { CreatePersonDto, UpdatePersonDto } from 'src/modules/person/dto';
 import { Group } from 'src/modules/group/entities/group.entity';
@@ -188,6 +186,20 @@ export class UsersService {
         const result = await this.userRepository.findAll({ include: [Role, Organization, Person, Group], attributes: { exclude: ['password', 'organization_id', 'role_id', 'person_id', 'group_id'] } })
 
         return result;
+    }
+
+    async findOne(user_id: number): Promise<boolean> {
+        try {
+            const result = await this.userRepository.findOne({ where: { user_id } });
+
+            if (result) {
+                return true;
+            } else {
+                return false;
+            }
+        } catch (error) {
+            throw new Error(error);
+        }
     }
 
     async findById(id: number) {

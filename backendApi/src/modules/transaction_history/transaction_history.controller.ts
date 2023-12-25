@@ -1,21 +1,35 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, HttpException, HttpStatus } from '@nestjs/common';
 import { TransactionHistoryService } from './transaction_history.service';
-import { CreateTransactionHistoryDto } from './dto/create-transaction_history.dto';
-import { UpdateTransactionHistoryDto } from './dto/update-transaction_history.dto';
+import { CreateTransactionHistoryDto, UpdateTransactionHistoryDto } from './dto';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../auth/guards/auth.guard';
+import { AppError } from 'src/common/constants/error';
+import { UsersService } from '../users/users.service';
 
 @ApiBearerAuth()
 @ApiTags('Transaction History')
 @Controller('transaction-history')
 export class TransactionHistoryController {
-  constructor(private readonly transactionHistoryService: TransactionHistoryService) { }
+  constructor(
+    private readonly transactionHistoryService: TransactionHistoryService,
+    private readonly userService: UsersService,
+  ) { }
 
   @UseGuards(JwtAuthGuard)
   @Post()
-  create(@Body() createTransactionHistoryDto: CreateTransactionHistoryDto) {
+  async create(@Body() createTransactionHistoryDto: CreateTransactionHistoryDto) {
+    let foundUser = null;
+    if (createTransactionHistoryDto.user_id) {
+      foundUser = await this.userService.findOne(createTransactionHistoryDto.user_id);
+    }
+
+    if (!foundUser) {
+      throw new HttpException(AppError.USER_NOT_FOUND, HttpStatus.BAD_REQUEST);
+    }
+
     return this.transactionHistoryService.create(createTransactionHistoryDto);
   }
+
   @UseGuards(JwtAuthGuard)
   @Get('all')
   findAll() {
@@ -24,13 +38,34 @@ export class TransactionHistoryController {
 
   @UseGuards(JwtAuthGuard)
   @Patch()
-  update(@Body() updateTransactionHistoryDto: UpdateTransactionHistoryDto) {
+  async update(@Body() updateTransactionHistoryDto: UpdateTransactionHistoryDto) {
+    let foundTransactionHistory = null;
+    if (updateTransactionHistoryDto.history_id) {
+      foundTransactionHistory = await this.transactionHistoryService.findOne(updateTransactionHistoryDto.history_id);
+    }
+    if (!foundTransactionHistory) {
+      throw new HttpException(AppError.TRANSACTION_HISTORY_NOT_FOUND, HttpStatus.NOT_FOUND);
+    }
+
+    let foundUser = null;
+    if (updateTransactionHistoryDto.user_id) {
+      foundUser = await this.userService.findOne(updateTransactionHistoryDto.user_id);
+    }
+    if (!foundUser) {
+      throw new HttpException(AppError.USER_NOT_FOUND, HttpStatus.BAD_REQUEST);
+    }
+
     return this.transactionHistoryService.update(updateTransactionHistoryDto);
   }
 
   @UseGuards(JwtAuthGuard)
   @Delete(':id')
-  remove(@Param('id') id: string) {
+  async remove(@Param('id') id: number) {
+    const foundTransactionHistory = await this.transactionHistoryService.findOne(id);
+    if (foundTransactionHistory == null) {
+      throw new HttpException(AppError.TRANSACTION_HISTORY_NOT_FOUND, HttpStatus.NOT_FOUND);
+    }
+
     return this.transactionHistoryService.remove(+id);
   }
 }
