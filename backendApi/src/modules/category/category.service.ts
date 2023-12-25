@@ -49,7 +49,6 @@ export class CategoryService {
     } catch (error) {
       throw new Error(error);
     }
-
   }
 
   async update(updatedCategory: UpdateCategoryDto, user_id: number): Promise<CategoryResponse> {
@@ -74,18 +73,22 @@ export class CategoryService {
   }
 
   async remove(category_id: number, user_id: number): Promise<StatusCategoryResponse> {
-    const deleteCategory = await this.categoryRepository.destroy({ where: { category_id } });
+    try {
+      const deleteCategory = await this.categoryRepository.destroy({ where: { category_id } });
 
-    if (deleteCategory) {
-      const historyDto = {
-        "user_id": user_id,
-        "comment": `Удалена категория #${category_id}`,
+      if (deleteCategory) {
+        const historyDto = {
+          "user_id": user_id,
+          "comment": `Удалена категория #${category_id}`,
+        }
+        await this.historyService.create(historyDto);
+
+        return { status: true };
       }
-      await this.historyService.create(historyDto);
 
-      return { status: true };
+      return { status: false };
+    } catch (error) {
+      throw new Error(error);
     }
-
-    return { status: false };
   }
 }

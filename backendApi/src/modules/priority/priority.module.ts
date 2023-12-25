@@ -3,13 +3,12 @@ import { PriorityService } from './priority.service';
 import { PriorityController } from './priority.controller';
 import { SequelizeModule } from '@nestjs/sequelize';
 import { OrderPriority } from './entities/priority.entity';
-import { User } from '../users/entities/user.entity';
-import { TransactionHistory } from '../transaction_history/entities/transaction_history.entity';
-import { TransactionHistoryService } from '../transaction_history/transaction_history.service';
+import { UsersModule } from '../users/users.module';
+import { TransactionHistoryModule } from '../transaction_history/transaction_history.module';
 
 @Module({
-  imports: [SequelizeModule.forFeature([OrderPriority, User, TransactionHistory])],
+  imports: [SequelizeModule.forFeature([OrderPriority]), UsersModule, TransactionHistoryModule],
   controllers: [PriorityController],
-  providers: [PriorityService, TransactionHistoryService],
+  providers: [PriorityService],
 })
 export class PriorityModule { }
