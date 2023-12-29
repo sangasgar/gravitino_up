@@ -25,15 +25,11 @@ export class AuthController {
     return this.authService.login(authDto, { userAgent: request.headers['user-agent'], ipAddress: ipAddress });
   }
 
-  @ApiBearerAuth()
-  @UseGuards(JwtAuthGuard)
   @Post('refresh')
   async refreshToken(@Body() body: RefreshTokenDto) {
     return this.authService.refresh(body.refresh_token);
   }
 
-  @ApiBearerAuth()
-  @UseGuards(JwtAuthGuard)
   @Delete('logout')
   async logout(@Body() body: RefreshTokenDto) {
     return this.authService.logout(body.refresh_token);
