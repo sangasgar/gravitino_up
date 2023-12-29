@@ -15,27 +15,27 @@ function DashboardLink({
   path: string;
   title: string;
 }) {
-  if (path === "/") {
+  if (path === "/dashboard") {
     document.title = title;
   }
   return (
     <div
       className={
-        path === "/"
+        path === "/dashboard"
           ? "bg-[#F8F8F8] relative items-center justify-center "
           : "relative items-center justify-center "
       }
     >
       <div
         className={
-          path === "/"
+          path === "/dashboard"
             ? "h-[100%] absolute border-solid border-l-4 border-[#0784D1] "
             : "absolute"
         }
       >
         &nbsp;
       </div>
-      <Link to="/">
+      <Link to="/dashboard">
         <ListItemButton
           sx={{
             py: 1.5,
@@ -46,7 +46,7 @@ function DashboardLink({
         >
           <div className="flex items-center gap-3  justify-center">
             <LayoutDashboard
-              strokeWidth={path === "/" ? 3 : 2.4}
+              strokeWidth={path === "/dashboard" ? 3 : 2.4}
               size={20}
               color="#3F434A"
             />
@@ -55,7 +55,7 @@ function DashboardLink({
               {props.open && (
                 <div
                   className={
-                    path === "/"
+                    path === "/dashboard"
                       ? "font-[600]"
                       : "font-[400]" +
                         "font-pop text-[15px] font-normal text-[#3F434A]"

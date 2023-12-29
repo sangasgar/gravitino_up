@@ -5,7 +5,7 @@ import { useLocation } from "react-router-dom";
 import DashboardLink from "./links/DashboardLink";
 import ScheduleLink from "./links/ScheduleLink";
 import ReportsLink from "./links/ReportsLink";
-import CarsLink from "./links/CarsLink";
+
 import MapsLink from "./links/MapsLink";
 import PlannerLink from "./links/PlannerLink";
 import MediaReportsLink from "./links/MediaReportsLink";
@@ -25,7 +25,7 @@ export function Navbar({
   const path = useLocation();
 
   return (
-    <div className="bg-white grid grid-rows-[64px_auto] border-solid  min-h-screen ">
+    <div className="bg-white grid grid-rows-[64px_auto] border-solid  h-screen   ">
       {props.open ? (
         <div className="text-[#0784D1] items-center font-pop font-bold text-[18px] flex justify-center ">
           ГРАВИТИНО УП
@@ -41,8 +41,13 @@ export function Navbar({
       >
         <DashboardLink props={props} path={path.pathname} title="Дашбоард" />
         <ScheduleLink props={props} path={path.pathname} />
-        <ReportsLink props={props} path={path.pathname} title="Отчеты" />
-        <CarsLink props={props} path={path.pathname} title="Машины" />
+        <ReportsLink
+          props={props}
+          path={path.pathname}
+          title="Отчеты"
+          count={10}
+        />
+
         <MapsLink props={props} path={path.pathname} title="Карты" />
         <PlannerLink props={props} path={path.pathname} title="Планировщик" />
         <MediaReportsLink

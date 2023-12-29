@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { LineChart } from "lucide-react";
+import { Circle, LineChart, Plus } from "lucide-react";
 import { Dispatch, SetStateAction } from "react";
 
 import ListItemButton from "@mui/material/ListItemButton";
@@ -8,6 +8,7 @@ function ReportsLink({
   props,
   path,
   title,
+  count,
 }: {
   props: {
     open: boolean;
@@ -15,6 +16,7 @@ function ReportsLink({
   };
   path: string;
   title: string;
+  count: number;
 }) {
   if (path === "/reports") {
     document.title = title;
@@ -45,27 +47,36 @@ function ReportsLink({
             },
           }}
         >
-          <div className="flex items-center justify-center gap-3">
+          <div className="flex w-full items-center justify-start gap-x-3 ">
             <LineChart
               strokeWidth={path === "/reports" ? 3 : 2.4}
               size={20}
               color="#3F434A"
             />
 
-            <div>
+            <div className="flex items-center   ">
               {props.open && (
                 <div
                   className={
                     path === "/reports"
                       ? "font-[600]"
                       : "font-[400]" +
-                        "font-pop text-[15px] font-normal text-[#3F434A]"
+                        "font-pop text-[15px] font-normal text-[#3F434A] "
                   }
                 >
                   Отчеты
                 </div>
               )}
             </div>
+          </div>
+          <div className="flex justify-end items-center gap-x-3">
+            {count !== 0 && (
+              <div className="w-[20px] h-[20px]  rounded-full bg-[#0784D1] flex justify-center items-center">
+                <p className="text-white text-[12px]">
+                  {count < 10 ? `${count}` : "+9"}
+                </p>
+              </div>
+            )}
           </div>
         </ListItemButton>
       </Link>
